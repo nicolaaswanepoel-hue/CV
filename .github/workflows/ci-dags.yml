@@ -1,11 +1,24 @@
+name: CI — Airflow DAGs
+on:
+  push:
+    paths: ["docker/dags/**/*.py", ".github/workflows/ci-dags.yml"]
+  pull_request:
+    paths: ["docker/dags/**/*.py"]
+permissions:
+  contents: read
+
 jobs:
   dag-checks:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/workflows/_setup-python-tooling.yml
+
+      # Call shared setup (ruff, mypy, types-requests installed here)
+      - uses: nicolaaswanepoel-hue/CV/.github/workflows/_setup-python-tooling.yml@main
         with:
           python-version: "3.11"
+
+      # Stub Airflow so imports succeed without installing Airflow
       - name: Airflow import stubs
         run: |
           python - <<'PY'
@@ -15,8 +28,23 @@ sys.modules["airflow"] = stub
 sys.modules["airflow.models"] = types.ModuleType("airflow.models")
 sys.modules["airflow.operators"] = types.ModuleType("airflow.operators")
 sys.modules["airflow.operators.python"] = types.ModuleType("airflow.operators.python")
-print("Stubbed minimal airflow modules.")
+print("Stubbed minimal airflow modules for import checks.")
 PY
-      - run: ruff check docker/dags
-      - run: python -m py_compile $(git ls-files "docker/dags/**/*.py")
-      - run: mypy --ignore-missing-imports docker/dags
+
+      - name: Ruff (style)
+        run: ruff check docker/dags
+
+      - name: Syntax/import check
+        run: |
+          python -m py_compile $(git ls-files "docker/dags/**/*.py")
+          python - <<'PY'
+import importlib, pathlib
+for p in pathlib.Path("docker/dags").rglob("*.py"):
+    mod = p.with_suffix("").as_posix().replace("/", ".")
+    print("Importing", mod)
+    importlib.import_module(mod)
+print("All DAG modules import successfully (with stubs).")
+PY
+
+      - name: Mypy (type checks)
+        run: mypy --ignore-missing-imports docker/dags
