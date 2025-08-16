@@ -154,18 +154,36 @@ def export_latest_csv():
           m.bias
         FROM weather.metrics_daily AS m
         JOIN d ON m.day = d.day
+        WHERE m.horizon_hours >= 0        -- keep negatives out of the CSV
         ORDER BY m.var, m.horizon_hours;
         """
-        df = pd.read_sql(q, conn)  # pandas + psycopg2 is fine here
+        df = pd.read_sql(q, conn)
     finally:
         conn.close()
+
+    # If empty, just log and return
+    if df.empty:
+        log.warning("export_latest_csv: no rows to export (after horizon filter)")
+        return
+
+    # Optional: include a generated_at timestamp (harmless extra column)
+    from datetime import datetime as dt
+    df.insert(0, "generated_at", dt.utcnow().isoformat(timespec="seconds") + "Z")
 
     from pathlib import Path
     outdir = Path("/opt/site/data")
     outdir.mkdir(parents=True, exist_ok=True)
-    outpath = outdir / "metrics_latest.csv"
-    df.to_csv(outpath, index=False)
-    log.info("export_latest_csv: wrote %d rows to %s", len(df), outpath)
+
+    # Dated snapshot + rolling latest
+    day_str = pd.to_datetime(df["day"].max()).strftime("%Y-%m-%d")
+    latest = outdir / "metrics_latest.csv"
+    dated  = outdir / f"metrics_{day_str}.csv"
+
+    df.to_csv(latest, index=False)
+    df.to_csv(dated,  index=False)
+
+    log.info("export_latest_csv: wrote %d rows to %s and %s", len(df), latest, dated)
+
 
 
 
