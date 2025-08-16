@@ -1,0 +1,12 @@
+site_name: Forecast Accuracy Lab
+theme:
+  name: material
+  features: [navigation.tabs, navigation.top, content.code.copy]
+nav:
+  - Home: index.md
+  - Pipelines:
+    - Batch (Airflow): pages/batch.md
+    - Streaming: pages/streaming.md
+  - Results: pages/results.md
+docs_dir: site
+site_dir: site_build

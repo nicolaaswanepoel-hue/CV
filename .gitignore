@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.env
+
+# Airflow & Superset local state
+airflow/logs/
+superset/*
+!superset/.gitkeep
+
+# MkDocs build & node caches
+site_build/
+node_modules/
+
+# Data artifacts
+site/data/*
+!site/data/.gitkeep
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker volumes (if bind-mounted)
+pgdata/
