@@ -4,56 +4,116 @@
   <meta charset="utf-8" />
   <title>Nico’s Weather Lab — Forecast Accuracy</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="Live snapshot of forecast accuracy for Cape Town. Data pipeline: API → Docker → Airflow → Postgres → CSV → GitHub Pages." />
+
+  <!-- Open Graph / Twitter cards -->
+  <meta property="og:title" content="Forecast Accuracy — Nico’s Weather Lab">
+  <meta property="og:description" content="How close were forecasts to reality? Live metrics by horizon. API → Docker → Airflow → Postgres → CSV → GitHub Pages.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://nicolaaswanepoel-hue.github.io/CV/">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <!-- libs -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
   <style>
-    :root { --bg:#0c1224; --ink:#e9edff; --muted:#9aa7ff; --card:#121a39; --border:#263169; }
-    *{box-sizing:border-box} html,body{margin:0;font:16px/1.5 ui-sans-serif,system-ui,Segoe UI,Roboto,Ubuntu;background:var(--bg);color:var(--ink)}
-    .wrap{max-width:1000px;margin:42px auto;padding:0 16px}
-    h1{margin:0 0 6px;font-size:28px} .sub{margin:0 0 16px;color:var(--muted)}
+    :root { --bg:#0c1224; --ink:#e9edff; --muted:#9aa7ff; --card:#121a39; --border:#263169; --accent:#7aa2ff; }
+    *{box-sizing:border-box}
+    html,body{margin:0;font:16px/1.5 ui-sans-serif,system-ui,Segoe UI,Roboto,Ubuntu;background:var(--bg);color:var(--ink)}
+    a{color:#cfe1ff;text-decoration:none} a:hover{text-decoration:underline}
+    .wrap{max-width:1050px;margin:42px auto;padding:0 16px}
+    h1{margin:0 0 6px;font-size:28px}
+    .sub{margin:0 0 16px;color:var(--muted)}
+    .badges img{vertical-align:middle;margin-right:6px}
+    .grid{display:grid;grid-template-columns:1fr;gap:16px;margin-top:14px}
+    @media (min-width:900px){ .grid{grid-template-columns:2fr 1fr} }
+
     .card{background:linear-gradient(180deg,#111836,#0b1230);border:1px solid var(--border);border-radius:18px;padding:18px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
     .controls{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
     select,button{background:#0e1532;color:var(--ink);border:1px solid var(--border);border-radius:12px;padding:9px 11px}
+
     .kpis{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0 12px}
     .kpi{flex:1;min-width:150px;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px}
     .kpi .label{color:#8fa0ff;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
     .kpi .value{font-size:22px;margin-top:6px}
     canvas{width:100%!important;height:420px!important}
-    footer{color:var(--muted);margin-top:10px;font-size:12px}
+
+    .stack{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:flex-start}
+    .node{background:#0e1532;border:1px solid var(--border);border-radius:12px;padding:8px 12px;white-space:nowrap}
+    .arrow{color:var(--muted);font-size:20px}
+
+    footer{color:var(--muted);margin-top:14px;font-size:12px}
+    .mini{font-size:12px;color:#9aa7ff;margin-top:6px}
   </style>
 </head>
 <body>
   <div class="wrap">
     <h1>Forecast Accuracy</h1>
-    <p class="sub">How close were forecasts to reality? Explore error by horizon. <span id="meta"></span></p>
-    <div class="card">
-      <div class="controls">
-        <label>Variable:
-          <select id="varSel">
-            <option value="temperature_2m">Temperature (°C)</option>
-            <option value="precipitation">Precipitation (mm)</option>
-            <option value="wind_speed_10m">Wind speed (m/s)</option>
-          </select>
-        </label>
-        <button id="toggleMetric">Metric: Average Miss (MAE)</button>
+    <p class="sub">
+      Live snapshot of how close forecasts were to reality. Explore error by forecast horizon.
+      <span id="meta"></span>
+    </p>
+
+    <div class="badges">
+      <img alt="Airflow" src="https://img.shields.io/badge/Airflow-2.9-blue">
+      <img alt="Postgres" src="https://img.shields.io/badge/Postgres-16-blue">
+      <img alt="Docker" src="https://img.shields.io/badge/Docker-✓-blue">
+      <img alt="GitHub Pages" src="https://img.shields.io/badge/GitHub%20Pages-live-brightgreen">
+      <img alt="Open Meteo API" src="https://img.shields.io/badge/Open--Meteo-API-7aa2ff">
+    </div>
+
+    <div class="grid">
+      <!-- Left: Chart -->
+      <div class="card">
+        <div class="controls">
+          <label>Variable:
+            <select id="varSel">
+              <option value="temperature_2m">Temperature (°C)</option>
+              <option value="precipitation">Precipitation (mm)</option>
+              <option value="wind_speed_10m">Wind speed (m/s)</option>
+            </select>
+          </label>
+          <button id="toggleMetric">Metric: Average Miss (MAE)</button>
+        </div>
+
+        <div class="kpis">
+          <div class="kpi"><div class="label">Average Miss (MAE)</div><div class="value" id="kpi-mae">—</div></div>
+          <div class="kpi"><div class="label">Big Miss Score (RMSE)</div><div class="value" id="kpi-rmse">—</div></div>
+          <div class="kpi"><div class="label">Forecast Lean (Bias)</div><div class="value" id="kpi-bias">—</div></div>
+        </div>
+
+        <canvas id="chart"></canvas>
+        <footer id="foot">Loading…</footer>
       </div>
 
-      <div class="kpis">
-        <div class="kpi"><div class="label">Average Miss (MAE)</div><div class="value" id="kpi-mae">—</div></div>
-        <div class="kpi"><div class="label">Big Miss Score (RMSE)</div><div class="value" id="kpi-rmse">—</div></div>
-        <div class="kpi"><div class="label">Forecast Lean (Bias)</div><div class="value" id="kpi-bias">—</div></div>
+      <!-- Right: About + Stack -->
+      <div class="card">
+        <h3 style="margin-top:0">How it works</h3>
+        <p class="mini">API → Docker → Airflow → Postgres → CSV → GitHub Pages</p>
+        <div class="stack" aria-label="architecture">
+          <div class="node">Open-Meteo API</div><div class="arrow">→</div>
+          <div class="node">Docker</div><div class="arrow">→</div>
+          <div class="node">Airflow</div><div class="arrow">→</div>
+          <div class="node">Postgres</div><div class="arrow">→</div>
+          <div class="node">CSV export</div><div class="arrow">→</div>
+          <div class="node">GitHub Pages</div>
+        </div>
+        <p class="mini" style="margin-top:10px">
+          Batch DAGs fetch forecasts & observations, compute daily metrics (MAE, RMSE, Bias) by horizon, then export
+          <code>docs/data/metrics_latest.csv</code> which powers this static dashboard.
+        </p>
+        <p class="mini">Source: <a href="https://github.com/nicolaaswanepoel-hue/CV" rel="noopener">github.com/nicolaaswanepoel-hue/CV</a></p>
+        <p class="mini">Last updated: <span id="updated">—</span></p>
       </div>
-
-      <canvas id="chart"></canvas>
-      <footer id="foot">Loading…</footer>
     </div>
   </div>
 
   <script>
+    // ---- data & chart ----
     const csvUrl = "./data/metrics_latest.csv?v=" + Date.now(); // cache-bust
     let rows = [];
     let metricMode = "mae"; // mae -> rmse -> bias
-
     const numFmt = (v, d=1) => (v==null || Number.isNaN(+v)) ? "—" : (+v).toFixed(d);
 
     function summarize(varName){
@@ -71,8 +131,10 @@
       window.ct = new Chart(ctx, {
         type:"line",
         data:{ labels, datasets:[{ label: metricMode==="mae"?"Average Miss (MAE)":metricMode==="rmse"?"Big Miss Score (RMSE)":"Forecast Lean (Bias)", data: series, borderWidth:2, tension:.2, pointRadius:3 }]},
-        options:{ responsive:true, plugins:{ legend:{display:true}, tooltip:{callbacks:{label:(c)=>`${c.dataset.label}: ${numFmt(c.parsed.y)}`}} },
-                  scales:{ x:{title:{display:true,text:"Hours Ahead (h)"}}, y:{title:{display:true,text:"Error (units vary)"}} } }
+        options:{ responsive:true,
+          plugins:{ legend:{display:true}, tooltip:{callbacks:{label:(c)=>`${c.dataset.label}: ${numFmt(c.parsed.y)}`}} },
+          scales:{ x:{title:{display:true,text:"Hours Ahead (h)"}}, y:{title:{display:true,text:"Error (units vary)"}} }
+        }
       });
     }
 
@@ -88,6 +150,7 @@
       const day = rows[0].day, city = rows[0].city;
       document.getElementById("meta").textContent = ` — ${city}, latest day: ${day}`;
       document.getElementById("foot").textContent = `Data: metrics_latest.csv · Negative horizons indicate demo/backfill mode`;
+      document.getElementById("updated").textContent = day;
     }
 
     function initUI(){
@@ -102,7 +165,9 @@
 
     Papa.parse(csvUrl, {
       download:true, header:true, dynamicTyping:true,
-      complete: (res)=>{ rows = res.data.filter(r=>r.day); setMeta(); initUI(); const v=document.getElementById("varSel").value; rebuildChart(v); updateKpis(v); },
+      complete: (res)=>{ rows = res.data.filter(r=>r.day); setMeta(); initUI();
+        const v=document.getElementById("varSel").value; rebuildChart(v); updateKpis(v);
+      },
       error: (err)=>{ document.getElementById("foot").textContent = "Failed to load CSV: " + err; }
     });
   </script>
