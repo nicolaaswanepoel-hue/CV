@@ -10,37 +10,15 @@ permissions:
 jobs:
   python:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.11"]
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      # 👇 call your shared setup workflow instead of repeating installs
+      - uses: ./.github/workflows/_setup-python-tooling.yml
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: "3.11"
 
-      - name: Cache pip
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt', 'pyproject.toml') }}
-          restore-keys: ${{ runner.os }}-pip-
-
-      - name: Install tools & deps
-        run: |
-          pip install --upgrade pip
-          pip install ruff black mypy pytest
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-
-      - name: Ruff (lint)
-        run: ruff check .
-
-      - name: Black (format check)
-        run: black --check .
-
-      - name: mypy (types, ignore missing imports to start)
-        run: mypy --ignore-missing-imports .
-
-      - name: pytest
-        run: pytest -q || echo "No tests yet — add some when ready."
+      - run: ruff check .
+      - run: black --check .
+      - run: mypy --ignore-missing-imports .
+      - run: pytest -q || echo "No tests yet — add some when ready."

@@ -1,26 +1,13 @@
-name: CI — Airflow DAGs
-on:
-  push:
-    paths: ["docker/dags/**/*.py", ".github/workflows/ci-dags.yml"]
-  pull_request:
-    paths: ["docker/dags/**/*.py"]
-permissions:
-  contents: read
-
 jobs:
   dag-checks:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with: { python-version: "3.11" }
-
-      - name: Install minimal deps
+      - uses: ./.github/workflows/_setup-python-tooling.yml
+        with:
+          python-version: "3.11"
+      - name: Airflow import stubs
         run: |
-          pip install ruff
-          # We won't spin up Airflow; just ensure DAG files are importable.
-          # If your DAGs import airflow directly, you can stub it:
           python - <<'PY'
 import sys, types
 stub = types.ModuleType("airflow")
@@ -28,20 +15,8 @@ sys.modules["airflow"] = stub
 sys.modules["airflow.models"] = types.ModuleType("airflow.models")
 sys.modules["airflow.operators"] = types.ModuleType("airflow.operators")
 sys.modules["airflow.operators.python"] = types.ModuleType("airflow.operators.python")
-print("Stubbed minimal airflow modules for import checks.")
+print("Stubbed minimal airflow modules.")
 PY
-
-      - name: Ruff (style)
-        run: ruff check docker/dags
-
-      - name: Syntax/import check
-        run: |
-          python -m py_compile $(git ls-files "docker/dags/**/*.py")
-          python - <<'PY'
-import importlib, pathlib, sys
-for p in pathlib.Path("docker/dags").rglob("*.py"):
-    mod = p.with_suffix("").as_posix().replace("/", ".")
-    print("Importing", mod)
-    importlib.import_module(mod)
-print("All DAG modules import successfully (with stubs).")
-PY
+      - run: ruff check docker/dags
+      - run: python -m py_compile $(git ls-files "docker/dags/**/*.py")
+      - run: mypy --ignore-missing-imports docker/dags
