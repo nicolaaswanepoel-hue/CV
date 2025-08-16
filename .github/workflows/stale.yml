@@ -1,0 +1,20 @@
+name: Housekeeping — Stale PRs/Issues
+on:
+  schedule: [{ cron: "0 3 * * *" }]  # daily
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v9
+        with:
+          days-before-stale: 30
+          days-before-close: 7
+          stale-issue-label: "stale"
+          stale-pr-label: "stale"
+          exempt-issue-labels: "pinned,security"
+          stale-issue-message: "Marking as stale due to inactivity. Comment to keep open."
+          stale-pr-message: "Marking as stale due to inactivity. Comment or push commits to keep open."

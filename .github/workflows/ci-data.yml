@@ -1,0 +1,56 @@
+name: CI — Data sanity
+on:
+  push:
+    paths: ["docs/data/*.csv", ".github/workflows/ci-data.yml"]
+  pull_request:
+    paths: ["docs/data/*.csv"]
+permissions:
+  contents: read
+
+jobs:
+  csv-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - name: Validate metrics CSVs
+        run: |
+          python - <<'PY'
+import csv, glob, sys, math
+
+required_cols = ["day","city","var","horizon_hours","mae","rmse","bias"]
+ok = True
+
+for path in sorted(glob.glob("docs/data/metrics_*.csv")) + sorted(glob.glob("docs/data/metrics_latest.csv")):
+    with open(path, newline="") as f:
+        r = csv.DictReader(f)
+        missing = [c for c in required_cols if c not in r.fieldnames]
+        if missing:
+            print(f"[FAIL] {path}: missing columns {missing}")
+            ok = False
+            continue
+        for i,row in enumerate(r, start=2):
+            try:
+                h = int(float(row["horizon_hours"]))
+                mae  = float(row["mae"]); rmse = float(row["rmse"]); bias = float(row["bias"])
+            except Exception as e:
+                print(f"[FAIL] {path}:{i} parse error: {e}")
+                ok = False; continue
+            # Basic invariants
+            if mae < 0 or rmse < 0:
+                print(f"[FAIL] {path}:{i} negative mae/rmse")
+                ok = False
+            if rmse + 1e-9 < mae:  # RMSE should be >= MAE mathematically
+                print(f"[FAIL] {path}:{i} rmse({rmse}) < mae({mae})")
+                ok = False
+            # Bias can be signed, but shouldn't be NaN/inf
+            if math.isnan(bias) or math.isinf(bias):
+                print(f"[FAIL] {path}:{i} bias invalid {bias}")
+                ok = False
+
+    print(f"[OK] checked {path}")
+
+if not ok:
+    sys.exit(1)
+PY
