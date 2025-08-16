@@ -4,16 +4,14 @@
   <meta charset="utf-8" />
   <title>Nico’s Weather Lab — Forecast Accuracy</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="description" content="Live snapshot of forecast accuracy for Cape Town. Data pipeline: API → Docker → Airflow → Postgres → CSV → GitHub Pages." />
+  <meta name="description" content="Live snapshot of forecast accuracy by city and day. API → Docker → Airflow → Postgres → CSV → GitHub Pages." />
 
-  <!-- Open Graph / Twitter cards -->
   <meta property="og:title" content="Forecast Accuracy — Nico’s Weather Lab">
-  <meta property="og:description" content="How close were forecasts to reality? Live metrics by horizon. API → Docker → Airflow → Postgres → CSV → GitHub Pages.">
+  <meta property="og:description" content="How close were forecasts to reality? Explore errors across hours within the day, by city.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://nicolaaswanepoel-hue.github.io/CV/">
   <meta name="twitter:card" content="summary_large_image">
 
-  <!-- libs -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
@@ -30,28 +28,28 @@
     @media (min-width:900px){ .grid{grid-template-columns:2fr 1fr} }
 
     .card{background:linear-gradient(180deg,#111836,#0b1230);border:1px solid var(--border);border-radius:18px;padding:18px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
-    .controls{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+    .controls{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
+    label{display:flex;gap:8px;align-items:center}
     select,button{background:#0e1532;color:var(--ink);border:1px solid var(--border);border-radius:12px;padding:9px 11px}
 
     .kpis{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0 12px}
-    .kpi{flex:1;min-width:150px;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px}
+    .kpi{flex:1;min-width:190px;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px}
     .kpi .label{color:#8fa0ff;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
     .kpi .value{font-size:22px;margin-top:6px}
+    .mini{font-size:12px;color:#9aa7ff;margin-top:6px}
     canvas{width:100%!important;height:420px!important}
 
     .stack{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:flex-start}
     .node{background:#0e1532;border:1px solid var(--border);border-radius:12px;padding:8px 12px;white-space:nowrap}
     .arrow{color:var(--muted);font-size:20px}
-
     footer{color:var(--muted);margin-top:14px;font-size:12px}
-    .mini{font-size:12px;color:#9aa7ff;margin-top:6px}
   </style>
 </head>
 <body>
   <div class="wrap">
     <h1>Forecast Accuracy</h1>
     <p class="sub">
-      Live snapshot of how close forecasts were to reality. Explore error by forecast horizon.
+      “How far off were we?” — Pick a city and see how errors change by hour within the day.
       <span id="meta"></span>
     </p>
 
@@ -68,6 +66,12 @@
       <!-- Left: Chart -->
       <div class="card">
         <div class="controls">
+          <label>City:
+            <select id="citySel"></select>
+          </label>
+          <label>Day:
+            <select id="daySel"></select>
+          </label>
           <label>Variable:
             <select id="varSel">
               <option value="temperature_2m">Temperature (°C)</option>
@@ -79,18 +83,23 @@
         </div>
 
         <div class="kpis">
-          <div class="kpi"><div class="label">Average Miss (MAE)</div><div class="value" id="kpi-mae">—</div></div>
-          <div class="kpi"><div class="label">Big Miss Score (RMSE)</div><div class="value" id="kpi-rmse">—</div></div>
-          <div class="kpi"><div class="label">Forecast Lean (Bias)</div><div class="value" id="kpi-bias">—</div></div>
+          <div class="kpi"><div class="label">Typical miss (MAE)</div><div class="value" id="kpi-mae">—</div><div class="mini">Average absolute error across hours today</div></div>
+          <div class="kpi"><div class="label">Big misses weighted (RMSE)</div><div class="value" id="kpi-rmse">—</div><div class="mini">Large errors count extra</div></div>
+          <div class="kpi"><div class="label">Lean (Bias)</div><div class="value" id="kpi-bias">—</div><div class="mini">+ means forecast ran high; – means low</div></div>
         </div>
 
-        <canvas id="chart"></canvas>
+        <canvas id="chart" aria-label="Accuracy across hours within the day"></canvas>
         <footer id="foot">Loading…</footer>
       </div>
 
       <!-- Right: About + Stack -->
       <div class="card">
-        <h3 style="margin-top:0">How it works</h3>
+        <h3 style="margin-top:0">What am I looking at?</h3>
+        <p class="mini">
+          For the selected city and day, we compare hourly forecasts to what actually happened.
+          The line shows error vs. “hours ahead” (how far in advance the forecast was made).
+        </p>
+        <h3 style="margin-bottom:6px">How it works</h3>
         <p class="mini">API → Docker → Airflow → Postgres → CSV → GitHub Pages</p>
         <div class="stack" aria-label="architecture">
           <div class="node">Open-Meteo API</div><div class="arrow">→</div>
@@ -101,75 +110,179 @@
           <div class="node">GitHub Pages</div>
         </div>
         <p class="mini" style="margin-top:10px">
-          Batch DAGs fetch forecasts & observations, compute daily metrics (MAE, RMSE, Bias) by horizon, then export
-          <code>docs/data/metrics_latest.csv</code> which powers this static dashboard.
+          Batch DAGs compute MAE, RMSE and Bias by horizon and export
+          <code>docs/data/metrics_latest.csv</code> which powers this page.
         </p>
         <p class="mini">Source: <a href="https://github.com/nicolaaswanepoel-hue/CV" rel="noopener">github.com/nicolaaswanepoel-hue/CV</a></p>
-        <p class="mini">Last updated: <span id="updated">—</span></p>
+        <p class="mini">Data generated: <span id="updated">—</span></p>
       </div>
     </div>
   </div>
 
   <script>
-    // ---- data & chart ----
+    // ---------- data & helpers ----------
     const csvUrl = "./data/metrics_latest.csv?v=" + Date.now(); // cache-bust
     let rows = [];
     let metricMode = "mae"; // mae -> rmse -> bias
+
+    const unitsByVar = {
+      temperature_2m: "°C",
+      precipitation: "mm",
+      wind_speed_10m: "m/s"
+    };
+    const metricLabel = () =>
+      metricMode==="mae" ? "Typical miss (MAE)" :
+      metricMode==="rmse" ? "Big misses weighted (RMSE)" :
+      "Lean (Bias)";
+
     const numFmt = (v, d=1) => (v==null || Number.isNaN(+v)) ? "—" : (+v).toFixed(d);
 
-    function summarize(varName){
-      const s = rows.filter(r=>r.var===varName);
+    function uniq(arr){ return [...new Set(arr)]; }
+
+    function cityOptions(){
+      return uniq(rows.map(r=>r.city)).sort((a,b)=>a.localeCompare(b));
+    }
+    function dayOptions(city){
+      return uniq(rows.filter(r=>r.city===city).map(r=>r.day))
+        .sort((a,b)=>a.localeCompare(b)); // ISO date strings → lexical sort works
+    }
+
+    function summarize(city, day, varName){
+      const s = rows.filter(r=>r.city===city && r.day===day && r.var===varName);
       const avg = k => s.length ? s.reduce((a,x)=>a + (+x[k]),0)/s.length : null;
       return { mae: avg("mae"), rmse: avg("rmse"), bias: avg("bias") };
     }
 
-    function rebuildChart(varName){
-      const data = rows.filter(r=>r.var===varName).sort((a,b)=>(+a.horizon_hours)-(+b.horizon_hours));
-      const labels = data.map(r=>r.horizon_hours);
-      const series = data.map(r=>+r[metricMode]);
-      if (window.ct) window.ct.destroy();
-      const ctx = document.getElementById("chart");
-      window.ct = new Chart(ctx, {
-        type:"line",
-        data:{ labels, datasets:[{ label: metricMode==="mae"?"Average Miss (MAE)":metricMode==="rmse"?"Big Miss Score (RMSE)":"Forecast Lean (Bias)", data: series, borderWidth:2, tension:.2, pointRadius:3 }]},
-        options:{ responsive:true,
-          plugins:{ legend:{display:true}, tooltip:{callbacks:{label:(c)=>`${c.dataset.label}: ${numFmt(c.parsed.y)}`}} },
-          scales:{ x:{title:{display:true,text:"Hours Ahead (h)"}}, y:{title:{display:true,text:"Error (units vary)"}} }
-        }
-      });
+    function setMeta(city, day){
+      document.getElementById("meta").textContent = ` — City: ${city} · Day: ${day}`;
     }
 
-    function updateKpis(varName){
-      const s = summarize(varName);
+    function updateKpis(city, day, varName){
+      const s = summarize(city, day, varName);
       document.getElementById("kpi-mae").textContent  = numFmt(s.mae);
       document.getElementById("kpi-rmse").textContent = numFmt(s.rmse);
       document.getElementById("kpi-bias").textContent = numFmt(s.bias);
     }
 
-    function setMeta(){
-      if (!rows.length) return;
-      const day = rows[0].day, city = rows[0].city;
-      document.getElementById("meta").textContent = ` — ${city}, latest day: ${day}`;
-      document.getElementById("foot").textContent = `Data: metrics_latest.csv · Negative horizons indicate demo/backfill mode`;
-      document.getElementById("updated").textContent = day;
+    // ---------- chart ----------
+    function rebuildChart(city, day, varName){
+      const data = rows
+        .filter(r=>r.city===city && r.day===day && r.var===varName)
+        .sort((a,b)=>(+a.horizon_hours)-(+b.horizon_hours));
+
+      const labels = data.map(r=>r.horizon_hours);
+      const series = data.map(r=>+r[metricMode]);
+
+      if (window.ct) window.ct.destroy();
+      const ctx = document.getElementById("chart");
+      window.ct = new Chart(ctx, {
+        type:"line",
+        data:{ labels, datasets:[{
+          label: metricLabel(),
+          data: series,
+          borderWidth:2, tension:.2, pointRadius:3
+        }]},
+        options:{
+          responsive:true,
+          plugins:{
+            legend:{display:true},
+            tooltip:{callbacks:{label:(c)=>`${c.dataset.label}: ${numFmt(c.parsed.y)} ${unitsByVar[varName]||""}`}}
+          },
+          scales:{
+            x:{title:{display:true,text:"Hours ahead (forecast lead time)"}},
+            y:{title:{display:true,text:`Error (${unitsByVar[varName]||"units"})`}}
+          }
+        }
+      });
+    }
+
+    // ---------- UI wiring ----------
+    function populateSelectors(){
+      const citySel = document.getElementById("citySel");
+      const daySel  = document.getElementById("daySel");
+
+      // City options
+      citySel.innerHTML = "";
+      for (const c of cityOptions()){
+        const o = document.createElement("option");
+        o.value = o.textContent = c;
+        citySel.appendChild(o);
+      }
+
+      // Day options for the selected city (default to latest)
+      const setDays = ()=>{
+        const days = dayOptions(citySel.value);
+        daySel.innerHTML = "";
+        for (const d of days){ // latest last
+          const o = document.createElement("option");
+          o.value = o.textContent = d;
+          daySel.appendChild(o);
+        }
+        // select latest
+        if (days.length) daySel.value = days[days.length-1];
+      };
+      setDays();
+
+      // When city changes, refresh day list (keep latest), chart, KPIs
+      citySel.addEventListener("change", ()=>{
+        setDays();
+        const v = document.getElementById("varSel").value;
+        setMeta(citySel.value, daySel.value);
+        updateKpis(citySel.value, daySel.value, v);
+        rebuildChart(citySel.value, daySel.value, v);
+      });
+
+      // When day changes, rebuild
+      daySel.addEventListener("change", ()=>{
+        const v = document.getElementById("varSel").value;
+        setMeta(citySel.value, daySel.value);
+        updateKpis(citySel.value, daySel.value, v);
+        rebuildChart(citySel.value, daySel.value, v);
+      });
     }
 
     function initUI(){
       const varSel = document.getElementById("varSel");
-      varSel.addEventListener("change", ()=>{ rebuildChart(varSel.value); updateKpis(varSel.value); });
+      const citySel = document.getElementById("citySel");
+      const daySel  = document.getElementById("daySel");
+
+      varSel.addEventListener("change", ()=>{
+        rebuildChart(citySel.value, daySel.value, varSel.value);
+        updateKpis(citySel.value, daySel.value, varSel.value);
+      });
+
       document.getElementById("toggleMetric").addEventListener("click",(e)=>{
         metricMode = metricMode==="mae" ? "rmse" : metricMode==="rmse" ? "bias" : "mae";
-        e.target.textContent = "Metric: " + (metricMode==="mae"?"Average Miss (MAE)":metricMode==="rmse"?"Big Miss Score (RMSE)":"Forecast Lean (Bias)");
-        rebuildChart(varSel.value);
+        e.target.textContent = "Metric: " + (metricMode==="mae"?"Average Miss (MAE)":metricMode==="rmse"?"Big Miss (RMSE)":"Lean (Bias)");
+        rebuildChart(citySel.value, daySel.value, varSel.value);
       });
     }
 
+    // ---------- load CSV ----------
     Papa.parse(csvUrl, {
       download:true, header:true, dynamicTyping:true,
-      complete: (res)=>{ rows = res.data.filter(r=>r.day); setMeta(); initUI();
-        const v=document.getElementById("varSel").value; rebuildChart(v); updateKpis(v);
+      complete: (res)=>{
+        rows = res.data.filter(r=>r.day && r.city && r.var); // basic guard
+        // stamp "generated" if present; otherwise use latest day
+        const gen = rows[0]?.generated_at || "";
+        document.getElementById("updated").textContent = gen || (rows.map(r=>r.day).sort().slice(-1)[0] || "—");
+
+        populateSelectors();
+        initUI();
+
+        const city = document.getElementById("citySel").value;
+        const day  = document.getElementById("daySel").value;
+        const v    = document.getElementById("varSel").value;
+
+        setMeta(city, day);
+        rebuildChart(city, day, v);
+        updateKpis(city, day, v);
+
+        document.getElementById("foot").textContent = "Tip: Use the Metric button to toggle between MAE, RMSE and Bias.";
       },
-      error: (err)=>{ document.getElementById("foot").textContent = "Failed to load CSV: " + err; }
+      error: (err)=>{
+        document.getElementById("foot").textContent = "Failed to load CSV: " + err;
+      }
     });
   </script>
 </body>
