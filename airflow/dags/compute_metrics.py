@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 import logging
@@ -10,16 +10,24 @@ from pathlib import Path
 
 log = logging.getLogger("compute_metrics")
 
-ALLOW_NEGATIVE = os.environ.get("METRICS_ALLOW_NEGATIVE", "false").lower() in {"1","true","yes","y"}
+ALLOW_NEGATIVE = os.environ.get("METRICS_ALLOW_NEGATIVE", "false").lower() in {
+    "1",
+    "true",
+    "yes",
+    "y",
+}
 PG = dict(host="postgres", dbname="airflow", user="airflow", password="airflow")
 CITY = os.environ.get("CITY")  # if set, filter metrics to this city only (optional)
 
+
 def ensure_table():
     log.info("ensure_table: start")
-    conn = psycopg2.connect(**PG); conn.autocommit = True
+    conn = psycopg2.connect(**PG)
+    conn.autocommit = True
     cur = conn.cursor()
     cur.execute("CREATE SCHEMA IF NOT EXISTS weather;")
-    cur.execute("""
+    cur.execute(
+        """
       CREATE TABLE IF NOT EXISTS weather.metrics_daily(
         day date NOT NULL,
         city text NOT NULL,
@@ -29,13 +37,17 @@ def ensure_table():
         rmse double precision,
         bias double precision
       );
-    """)
+    """
+    )
     # helpful composite index for fast dedupe/queries
-    cur.execute("""
+    cur.execute(
+        """
       CREATE INDEX IF NOT EXISTS ix_metrics_daily_day_city_var_h
       ON weather.metrics_daily(day, city, var, horizon_hours);
-    """)
-    cur.close(); conn.close()
+    """
+    )
+    cur.close()
+    conn.close()
     log.info("ensure_table: done")
 
 
@@ -49,6 +61,7 @@ def _latest_overlap_day(conn):
     with conn.cursor() as c:
         c.execute(qry)
         return c.fetchone()[0]
+
 
 def compute_for_yesterday():
     conn = psycopg2.connect(**PG)
@@ -84,28 +97,46 @@ def compute_for_yesterday():
         log.info("compute_for_yesterday: joined rows=%d", len(df))
 
         if df.empty:
-            log.warning("compute_for_yesterday: no overlapping rows for %s (city=%s)", target_day, CITY)
+            log.warning(
+                "compute_for_yesterday: no overlapping rows for %s (city=%s)",
+                target_day,
+                CITY,
+            )
             return
 
         df["h"] = np.round(df["horizon_hours"]).astype("Int64")
-        log.info("ALLOW_NEGATIVE=%s; rows before horizon filter=%d", ALLOW_NEGATIVE, len(df))
+        log.info(
+            "ALLOW_NEGATIVE=%s; rows before horizon filter=%d", ALLOW_NEGATIVE, len(df)
+        )
         if not ALLOW_NEGATIVE:
             df = df[df["h"] >= 0]
         log.info("rows after horizon filter=%d", len(df))
         if df.empty:
-            log.warning("no rows after horizon filtering (likely all overlaps were negative)")
+            log.warning(
+                "no rows after horizon filtering (likely all overlaps were negative)"
+            )
             return
 
         rows = []
+
         def agg_err(fcol, ocol, var_name):
             tmp = df[["city", "h", fcol, ocol]].dropna()
             for (city, h), g in tmp.groupby(["city", "h"], dropna=True):
-                err  = g[fcol].to_numpy(dtype=float) - g[ocol].to_numpy(dtype=float)
-                mae  = float(np.mean(np.abs(err)))
+                err = g[fcol].to_numpy(dtype=float) - g[ocol].to_numpy(dtype=float)
+                mae = float(np.mean(np.abs(err)))
                 rmse = float(np.sqrt(np.mean(err**2)))
                 bias = float(np.mean(err))
-                rows.append({"day": target_day, "city": city, "horizon_hours": int(h),
-                             "var": var_name, "mae": mae, "rmse": rmse, "bias": bias})
+                rows.append(
+                    {
+                        "day": target_day,
+                        "city": city,
+                        "horizon_hours": int(h),
+                        "var": var_name,
+                        "mae": mae,
+                        "rmse": rmse,
+                        "bias": bias,
+                    }
+                )
 
         agg_err("f_temp", "o_temp", "temperature_2m")
         agg_err("f_prec", "o_prec", "precipitation")
@@ -119,21 +150,34 @@ def compute_for_yesterday():
 
         cur = conn.cursor()
         if CITY:
-            cur.execute("DELETE FROM weather.metrics_daily WHERE day=%s AND city=%s;", (target_day, CITY))
+            cur.execute(
+                "DELETE FROM weather.metrics_daily WHERE day=%s AND city=%s;",
+                (target_day, CITY),
+            )
             log.info("deleted existing rows for day=%s city=%s", target_day, CITY)
         else:
-            cur.execute("DELETE FROM weather.metrics_daily WHERE day=%s;", (target_day,))
+            cur.execute(
+                "DELETE FROM weather.metrics_daily WHERE day=%s;", (target_day,)
+            )
             log.info("deleted existing rows for day=%s (all cities)", target_day)
 
-        cur.executemany("""
+        cur.executemany(
+            """
           INSERT INTO weather.metrics_daily (day, city, horizon_hours, var, mae, rmse, bias)
           VALUES (%s,%s,%s,%s,%s,%s,%s);
-        """, list(mdf[["day","city","horizon_hours","var","mae","rmse","bias"]].itertuples(index=False, name=None)))
+        """,
+            list(
+                mdf[
+                    ["day", "city", "horizon_hours", "var", "mae", "rmse", "bias"]
+                ].itertuples(index=False, name=None)
+            ),
+        )
         conn.commit()
         cur.close()
         log.info("insert done")
     finally:
         conn.close()
+
 
 def export_latest_csv():
     log.info("export_latest_csv: start")
@@ -166,36 +210,36 @@ def export_latest_csv():
         return
 
     from datetime import datetime as dt
+
     df.insert(0, "generated_at", dt.utcnow().isoformat(timespec="seconds") + "Z")
 
-    from pathlib import Path
     outdir = Path("/opt/site/data")
     outdir.mkdir(parents=True, exist_ok=True)
 
     day_str = pd.to_datetime(df["day"].max()).strftime("%Y-%m-%d")
     latest = outdir / "metrics_latest.csv"
-    dated  = outdir / f"metrics_{day_str}.csv"
+    dated = outdir / f"metrics_{day_str}.csv"
 
     df.to_csv(latest, index=False)
-    df.to_csv(dated,  index=False)
+    df.to_csv(dated, index=False)
 
     log.info("export_latest_csv: wrote %d rows to %s and %s", len(df), latest, dated)
-
-
-
-
 
 
 with DAG(
     dag_id="compute_metrics",
     start_date=datetime(2025, 8, 1),
-    schedule_interval="30 2 * * *",   # daily 02:30 UTC (after obs/forecast)
+    schedule_interval="30 2 * * *",  # daily 02:30 UTC (after obs/forecast)
     catchup=False,
     default_args={"retries": 1, "retry_delay": timedelta(minutes=5)},
     description="Compute daily MAE/RMSE/Bias by city, variable, and forecast horizon.",
 ) as dag:
     ensure = PythonOperator(task_id="ensure_table", python_callable=ensure_table)
-    compute = PythonOperator(task_id="compute_for_yesterday", python_callable=compute_for_yesterday)
-    export = PythonOperator(task_id="export_latest_csv", python_callable=export_latest_csv)
+    compute = PythonOperator(
+        task_id="compute_for_yesterday", python_callable=compute_for_yesterday
+    )
+    export = PythonOperator(
+        task_id="export_latest_csv", python_callable=export_latest_csv
+    )
 
     ensure >> compute >> export
