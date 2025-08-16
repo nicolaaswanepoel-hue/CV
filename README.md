@@ -20,6 +20,8 @@ graph LR
   A --> P[(Postgres)]
   P --> G[CSV Export]
   G --> W[GitHub Pages Dashboard]
+
+
 If Mermaid doesn’t render:
 
 Weather API → Docker → Airflow → Postgres → CSV Export → GitHub Pages
