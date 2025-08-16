@@ -10,28 +10,13 @@ permissions:
 jobs:
   python:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.11"]
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      # Call the shared setup workflow from THIS repo's main branch
+      - uses: nicolaaswanepoel-hue/CV/.github/workflows/_setup-python-tooling.yml@main
         with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Cache pip
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt', 'pyproject.toml') }}
-          restore-keys: ${{ runner.os }}-pip-
-
-      - name: Install tools & deps
-        run: |
-          pip install --upgrade pip
-          pip install ruff black mypy pytest
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          python-version: "3.11"
 
       - name: Ruff (lint)
         run: ruff check .
