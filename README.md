@@ -1,13 +1,13 @@
-# 🌦️ Nico’s Weather Lab
+# Nico’s Weather Lab — Forecast Accuracy
 
-**Forecast Accuracy Dashboard** — A small data pipeline + interactive dashboard that tracks how weather forecasts compare against reality.  
-Built for fun, learning, and to give HR (and my living room) something to say *“oooh shiny”* about.
+A small data pipeline + interactive dashboard that tracks how weather forecasts compare to reality.  
+Built for fun, learning, and to give reviewers something to say “oooh shiny” about.
 
 ---
 
 ## 🚀 Live Dashboard
 
-👉 [View the dashboard here](https://nicolaaswanepoel-hue.github.io/CV/)  
+👉 **[Open Dashboard](https://nicolaaswanepoel-hue.github.io/CV/)**
 
 ---
 
@@ -17,49 +17,87 @@ Built for fun, learning, and to give HR (and my living room) something to say *�
 graph LR
   API((Weather API)) --> D(Docker)
   D --> A(Airflow)
-  A --> P[(Postgres DB)]
-  P --> G[GitHub CSV Export]
-  G --> W[Weather Dashboard 🌐]
+  A --> P[(Postgres)]
+  P --> G[CSV Export]
+  G --> W[GitHub Pages Dashboard]
+If Mermaid doesn’t render:
 
+mathematica
+Copy
+Edit
+Weather API → Docker → Airflow → Postgres → CSV Export → GitHub Pages
+📂 Repo Structure
+graphql
+Copy
+Edit
 CV/
-├── dags/                 # Airflow DAGs (compute + export jobs)
-├── docker/               # Docker Compose setup
-├── docs/                 # GitHub Pages site
-│   ├── index.html        # Dashboard
-│   └── data/metrics_latest.csv  # Latest exported metrics
-└── README.md             # This file
-
+├─ airflow/                 # Airflow project root
+│  └─ dags/                 # DAGs (ingest, compute, export)
+├─ docker/                  # Docker Compose and images
+│  ├─ compose.core.yml
+│  └─ images/
+├─ docs/                    # GitHub Pages site (served from /docs)
+│  ├─ index.html            # Mini dashboard (Chart.js + PapaParse)
+│  └─ data/
+│     └─ metrics_latest.csv # Latest exported metrics (daily)
+├─ sql/                     # (Optional) Useful queries/snippets
+└─ README.md
 ⚙️ How It Works
+Collect — Airflow DAGs fetch weather forecasts and observations into Postgres.
 
-Data Collection:
-Forecast + actual weather data are pulled via API and stored in Postgres.
+Compute — For each day & forecast horizon, compute:
 
-Compute Metrics:
-Airflow DAG computes:
+MAE: Average Miss (typical error)
 
-Average Miss (MAE) → typical error
+RMSE: Big Miss Score (penalizes large errors)
 
-Big Miss Score (RMSE) → punishes big mistakes
+Bias: Forecast Lean (over/under prediction)
 
-Forecast Lean (Bias) → systematic over/under prediction
+Export — Write a CSV to docs/data/metrics_latest.csv.
 
-Export:
-Latest metrics written to docs/data/metrics_latest.csv.
+Visualize — Static dashboard (/docs/index.html) reads the CSV and renders interactive charts (Chart.js).
 
-Dashboard:
-Static site (GitHub Pages) reads the CSV, renders interactive charts + KPIs with Chart.js.
-No backend required — it’s all static & self-updating.
+Zero backend. Zero hosting cost. Always a shareable link.
 
 🛠️ Stack
+Docker for local infra
 
-Airflow (data pipelines)
+Airflow for orchestration
 
-Postgres (storage)
+Postgres for storage
 
-Docker (local infra)
+Python / Pandas / Meteostat for data work
 
-GitHub Actions + Pages (deployment)
+Chart.js + PapaParse for the dashboard
 
-Chart.js + PapaParse + Mermaid (frontend visualization)
+GitHub Pages for hosting
 
-Built with ☕, 🐧, and curiosity.
+🧪 Local Dev (Quick Start)
+bash
+Copy
+Edit
+# 1) Bring up core stack
+docker compose -f docker/compose.core.yml up -d
+
+# 2) Access Airflow UI
+# http://localhost:8080  (default: admin / admin)
+
+# 3) After DAGs run, latest metrics CSV appears at:
+# docs/data/metrics_latest.csv
+
+# 4) Commit CSV so Pages can serve it
+git add docs/data/metrics_latest.csv
+git commit -m "Update metrics CSV"
+git push
+📝 Notes
+Negative horizons in early runs may indicate demo/backfill mode while data accumulates.
+
+The dashboard auto cache-busts the CSV with a ?v= query to avoid stale data.
+
+Future ideas:
+
+Multiple cities
+
+Auto git push from Airflow with a token
+
+Superset/Metabase for power users
