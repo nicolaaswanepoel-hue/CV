@@ -6,6 +6,7 @@ import os
 import psycopg2
 import pandas as pd
 import numpy as np
+from pathlib import Path
 
 log = logging.getLogger("compute_metrics")
 
@@ -134,6 +135,39 @@ def compute_for_yesterday():
     finally:
         conn.close()
 
+def export_latest_csv():
+    log.info("export_latest_csv: start")
+    conn = psycopg2.connect(**PG)
+    try:
+        q = """
+        WITH d AS (
+          SELECT MAX(mday) AS day
+          FROM (SELECT (day) AS mday FROM weather.metrics_daily) AS x
+        )
+        SELECT
+          m.day,
+          m.city,
+          m.var,
+          m.horizon_hours,
+          m.mae,
+          m.rmse,
+          m.bias
+        FROM weather.metrics_daily AS m
+        JOIN d ON m.day = d.day
+        ORDER BY m.var, m.horizon_hours;
+        """
+        df = pd.read_sql(q, conn)  # pandas + psycopg2 is fine here
+    finally:
+        conn.close()
+
+    from pathlib import Path
+    outdir = Path("/opt/site/data")
+    outdir.mkdir(parents=True, exist_ok=True)
+    outpath = outdir / "metrics_latest.csv"
+    df.to_csv(outpath, index=False)
+    log.info("export_latest_csv: wrote %d rows to %s", len(df), outpath)
+
+
 
 with DAG(
     dag_id="compute_metrics",
@@ -143,5 +177,8 @@ with DAG(
     default_args={"retries": 1, "retry_delay": timedelta(minutes=5)},
     description="Compute daily MAE/RMSE/Bias by city, variable, and forecast horizon.",
 ) as dag:
-    PythonOperator(task_id="ensure_table", python_callable=ensure_table) >> \
-    PythonOperator(task_id="compute_for_yesterday", python_callable=compute_for_yesterday)
+    ensure = PythonOperator(task_id="ensure_table", python_callable=ensure_table)
+    compute = PythonOperator(task_id="compute_for_yesterday", python_callable=compute_for_yesterday)
+    export = PythonOperator(task_id="export_latest_csv", python_callable=export_latest_csv)
+
+    ensure >> compute >> export
