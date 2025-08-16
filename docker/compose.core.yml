@@ -1,0 +1,55 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U airflow -d airflow"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    ports: ["5432:5432"]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  airflow-webserver:
+    image: apache/airflow:2.9.3
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      AIRFLOW__CORE__LOAD_EXAMPLES: "False"
+    volumes:
+      - ../airflow/dags:/opt/airflow/dags
+    ports:
+      - "8080:8080"
+    command: >
+      bash -lc "
+      airflow db upgrade &&
+      airflow users create --username admin --password admin --firstname Nico --lastname S --role Admin --email you@example.com || true &&
+      exec airflow webserver
+      "
+
+  airflow-scheduler:
+    image: apache/airflow:2.9.3
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      AIRFLOW__CORE__LOAD_EXAMPLES: "False"
+    volumes:
+      - ../airflow/dags:/opt/airflow/dags
+    command: >
+      bash -lc "
+      airflow db upgrade &&
+      exec airflow scheduler
+      "
+
+volumes:
+  pgdata:
