@@ -29,6 +29,7 @@ services:
       AIRFLOW__CORE__LOAD_EXAMPLES: "False"
     volumes:
       - ../airflow/dags:/opt/airflow/dags
+      - ../docs:/opt/site
     ports:
       - "8080:8080"
     command: >
@@ -53,6 +54,7 @@ services:
       AIRFLOW__CORE__LOAD_EXAMPLES: "False"
     volumes:
       - ../airflow/dags:/opt/airflow/dags
+      - ../docs:/opt/site
     command: >
       bash -lc "
       airflow db upgrade &&
