@@ -1,0 +1,32 @@
+Environment Setup
+
+    - Windows 10 Pro 22H2 confirmed 
+    - WSL2 installed + Ubuntu running 
+    - Docker Desktop hooked into WSL2  (tested with hello-world, working fine)
+    - VS Code configured 
+
+Installed extensions:
+
+    - Remote – WSL
+    - Docker
+    - GitHub Pull Requests & Issues
+    - Markdown All in One
+    - Gitlens
+    - Dev containers
+    - Error lens
+    - Todo highlight ETC.
+
+
+
+Git & Repo Workflow
+
+    - Repo can be opened inside WSL (code .) 
+    - Git initialized + GitHub repo connected 
+
+Successfully:
+
+    - Cloned repo into ~/projects/ 
+    - Configured Git identity & SSH 
+    - Pushed commits from VS Code 
+    - Tested feature branch → pull request → merge 
+    - fully working dev workflow now: code → commit → push → PR → merge
