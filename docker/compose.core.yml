@@ -15,7 +15,9 @@ services:
       - pgdata:/var/lib/postgresql/data
 
   airflow-webserver:
-    image: apache/airflow:2.9.3
+    build:
+      context: ..
+      dockerfile: docker/images/airflow.Dockerfile
     depends_on:
       postgres:
         condition: service_healthy
@@ -35,7 +37,9 @@ services:
       "
 
   airflow-scheduler:
-    image: apache/airflow:2.9.3
+    build:
+      context: ..
+      dockerfile: docker/images/airflow.Dockerfile
     depends_on:
       postgres:
         condition: service_healthy
