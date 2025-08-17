@@ -6,12 +6,14 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="description" content="Live snapshot of forecast accuracy by city and day. API → Docker → Airflow → Postgres → CSV → GitHub Pages." />
 
+  <!-- Open Graph -->
   <meta property="og:title" content="Forecast Accuracy — Nico’s Weather Lab">
   <meta property="og:description" content="How close were forecasts to reality? Explore errors across hours within the day, by city.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://nicolaaswanepoel-hue.github.io/CV/">
   <meta name="twitter:card" content="summary_large_image">
 
+  <!-- libs -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
@@ -49,29 +51,38 @@
   <div class="wrap">
     <h1>Forecast Accuracy</h1>
     <p class="sub">
-      “How far off were we?” — Pick a city and see how errors change by hour within the day.
+      “How far off were we?” — Pick a city and see how errors change by hour within the day (or compare all days).
       <span id="meta"></span>
     </p>
 
     <div class="badges">
-  <!-- CI status (click to view runs) -->
-  <a href="https://github.com/nicolaaswanepoel-hue/CV/actions/workflows/ci-python.yml" rel="noopener">
-    <img alt="CI — Python" src="https://github.com/nicolaaswanepoel-hue/CV/actions/workflows/ci-python.yml/badge.svg?branch=main">
-  </a>
+      <!-- CI status (click to view runs) -->
+      <a href="https://github.com/nicolaaswanepoel-hue/CV/actions/workflows/ci-python.yml" rel="noopener">
+        <img alt="CI — Python" src="https://github.com/nicolaaswanepoel-hue/CV/actions/workflows/ci-python.yml/badge.svg?branch=main">
+      </a>
+      <a href="https://github.com/nicolaaswanepoel-hue/CV/actions/workflows/ci-dags.yml" rel="noopener">
+        <img alt="CI — Airflow DAGs" src="https://github.com/nicolaaswanepoel-hue/CV/actions/workflows/ci-dags.yml/badge.svg?branch=main">
+      </a>
+      <a href="https://github.com/nicolaaswanepoel-hue/CV/actions/workflows/ci-data.yml" rel="noopener">
+        <img alt="CI — Data sanity" src="https://github.com/nicolaaswanepoel-hue/CV/actions/workflows/ci-data.yml/badge.svg?branch=main">
+      </a>
 
-  <!-- Git repo badges -->
-  <a href="https://github.com/nicolaaswanepoel-hue/CV" rel="noopener">
-    <img alt="Last commit" src="https://img.shields.io/github/last-commit/nicolaaswanepoel-hue/CV?label=last%20commit">
-  </a>
+      <!-- Git repo badges -->
+      <a href="https://github.com/nicolaaswanepoel-hue/CV" rel="noopener">
+        <img alt="Last commit" src="https://img.shields.io/github/last-commit/nicolaaswanepoel-hue/CV?label=last%20commit">
+      </a>
+      <a href="https://github.com/nicolaaswanepoel-hue/CV/stargazers" rel="noopener">
+        <img alt="GitHub stars" src="https://img.shields.io/github/stars/nicolaaswanepoel-hue/CV?style=flat">
+      </a>
 
-  <!-- Tech stack (kept from your page) -->
-  <img alt="Airflow" src="https://img.shields.io/badge/Airflow-2.9-blue">
-  <img alt="Python" src="https://img.shields.io/badge/Python-3.11-blue">
-  <img alt="Postgres" src="https://img.shields.io/badge/Postgres-16-blue">
-  <img alt="Docker" src="https://img.shields.io/badge/Docker-✓-blue">
-  <img alt="GitHub Pages" src="https://img.shields.io/badge/GitHub%20Pages-live-brightgreen">
-  <img alt="Open Meteo API" src="https://img.shields.io/badge/Open--Meteo-API-7aa2ff">
-</div>
+      <!-- Tech stack -->
+      <img alt="Airflow" src="https://img.shields.io/badge/Airflow-2.9-blue">
+      <img alt="Python" src="https://img.shields.io/badge/Python-3.11-blue">
+      <img alt="Postgres" src="https://img.shields.io/badge/Postgres-16-blue">
+      <img alt="Docker" src="https://img.shields.io/badge/Docker-✓-blue">
+      <img alt="GitHub Pages" src="https://img.shields.io/badge/GitHub%20Pages-live-brightgreen">
+      <img alt="Open Meteo API" src="https://img.shields.io/badge/Open--Meteo-API-7aa2ff">
+    </div>
 
     <div class="grid">
       <!-- Left: Chart -->
@@ -94,9 +105,9 @@
         </div>
 
         <div class="kpis">
-          <div class="kpi"><div class="label">Typical miss (MAE)</div><div class="value" id="kpi-mae">—</div><div class="mini">Average absolute error across hours today</div></div>
+          <div class="kpi"><div class="label">Typical miss (MAE)</div><div class="value" id="kpi-mae">—</div><div class="mini">Average absolute error across hours in selection</div></div>
           <div class="kpi"><div class="label">Big misses weighted (RMSE)</div><div class="value" id="kpi-rmse">—</div><div class="mini">Large errors count extra</div></div>
-          <div class="kpi"><div class="label">Lean (Bias)</div><div class="value" id="kpi-bias">—</div><div class="mini">+ means forecast ran high; – means low</div></div>
+          <div class="kpi"><div class="label">Lean (Bias)</div><div class="value" id="kpi-bias">—</div><div class="mini">+ forecast high · – forecast low</div></div>
         </div>
 
         <canvas id="chart" aria-label="Accuracy across hours within the day"></canvas>
@@ -108,7 +119,7 @@
         <h3 style="margin-top:0">What am I looking at?</h3>
         <p class="mini">
           For the selected city and day, we compare hourly forecasts to what actually happened.
-          The line shows error vs. “hours ahead” (how far in advance the forecast was made).
+          Switch Day to <b>All days</b> to overlay each day’s error curve and spot patterns.
         </p>
         <h3 style="margin-bottom:6px">How it works</h3>
         <p class="mini">API → Docker → Airflow → Postgres → CSV → GitHub Pages</p>
@@ -122,7 +133,7 @@
         </div>
         <p class="mini" style="margin-top:10px">
           Batch DAGs compute MAE, RMSE and Bias by horizon and export
-          <code>docs/data/metrics_latest.csv</code> which powers this page.
+          <code>docs/data/metrics_history.csv</code> (last N days) plus <code>metrics_latest.csv</code> (latest day).
         </p>
         <p class="mini">Source: <a href="https://github.com/nicolaaswanepoel-hue/CV" rel="noopener">github.com/nicolaaswanepoel-hue/CV</a></p>
         <p class="mini">Data generated: <span id="updated">—</span></p>
@@ -132,7 +143,7 @@
 
   <script>
     // ---------- data & helpers ----------
-    const csvUrl = "./data/metrics_latest.csv?v=" + Date.now(); // cache-bust
+    const csvUrl = "./data/metrics_history.csv?v=" + Date.now(); // multi-day history
     let rows = [];
     let metricMode = "mae"; // mae -> rmse -> bias
 
@@ -147,25 +158,26 @@
       "Lean (Bias)";
 
     const numFmt = (v, d=1) => (v==null || Number.isNaN(+v)) ? "—" : (+v).toFixed(d);
-
-    function uniq(arr){ return [...new Set(arr)]; }
+    const uniq = (arr) => [...new Set(arr)];
 
     function cityOptions(){
       return uniq(rows.map(r=>r.city)).sort((a,b)=>a.localeCompare(b));
     }
     function dayOptions(city){
       return uniq(rows.filter(r=>r.city===city).map(r=>r.day))
-        .sort((a,b)=>a.localeCompare(b)); // ISO date strings → lexical sort works
+        .sort((a,b)=>a.localeCompare(b)); // ISO dates sort lexically
     }
 
     function summarize(city, day, varName){
-      const s = rows.filter(r=>r.city===city && r.day===day && r.var===varName);
+      let s = rows.filter(r=>r.city===city && r.var===varName);
+      if (day !== "__ALL__") s = s.filter(r=>r.day===day);
       const avg = k => s.length ? s.reduce((a,x)=>a + (+x[k]),0)/s.length : null;
       return { mae: avg("mae"), rmse: avg("rmse"), bias: avg("bias") };
     }
 
     function setMeta(city, day){
-      document.getElementById("meta").textContent = ` — City: ${city} · Day: ${day}`;
+      document.getElementById("meta").textContent =
+        ` — City: ${city} · ${day==="__ALL__" ? "All days" : "Day: " + day}`;
     }
 
     function updateKpis(city, day, varName){
@@ -177,22 +189,32 @@
 
     // ---------- chart ----------
     function rebuildChart(city, day, varName){
-      const data = rows
-        .filter(r=>r.city===city && r.day===day && r.var===varName)
-        .sort((a,b)=>(+a.horizon_hours)-(+b.horizon_hours));
+      const byCityVar = rows.filter(r=>r.city===city && r.var===varName);
 
-      const labels = data.map(r=>r.horizon_hours);
-      const series = data.map(r=>+r[metricMode]);
+      // Union of horizons (stable x-axis)
+      const horizons = uniq(byCityVar.map(r=>+r.horizon_hours)).sort((a,b)=>a-b);
+      const labels = horizons;
+
+      let datasets = [];
+
+      if (day === "__ALL__"){
+        const days = uniq(byCityVar.map(r=>r.day)).sort((a,b)=>a.localeCompare(b));
+        datasets = days.map(d=>{
+          const map = new Map(byCityVar.filter(r=>r.day===d).map(r=>[+r.horizon_hours, +r[metricMode]]));
+          const series = horizons.map(h=> (map.has(h) ? map.get(h) : null));
+          return { label: d, data: series, borderWidth: 2, tension: .2, pointRadius: 2 };
+        });
+      } else {
+        const map = new Map(byCityVar.filter(r=>r.day===day).map(r=>[+r.horizon_hours, +r[metricMode]]));
+        const series = horizons.map(h=> (map.has(h) ? map.get(h) : null));
+        datasets = [{ label: metricLabel(), data: series, borderWidth: 2, tension: .2, pointRadius: 3 }];
+      }
 
       if (window.ct) window.ct.destroy();
       const ctx = document.getElementById("chart");
       window.ct = new Chart(ctx, {
         type:"line",
-        data:{ labels, datasets:[{
-          label: metricLabel(),
-          data: series,
-          borderWidth:2, tension:.2, pointRadius:3
-        }]},
+        data:{ labels, datasets },
         options:{
           responsive:true,
           plugins:{
@@ -220,21 +242,23 @@
         citySel.appendChild(o);
       }
 
-      // Day options for the selected city (default to latest)
+      // Day options for the selected city (with "All days")
       const setDays = ()=>{
         const days = dayOptions(citySel.value);
         daySel.innerHTML = "";
-        for (const d of days){ // latest last
+        const all = document.createElement("option");
+        all.value = "__ALL__";
+        all.textContent = "All days";
+        daySel.appendChild(all);
+        for (const d of days){
           const o = document.createElement("option");
           o.value = o.textContent = d;
           daySel.appendChild(o);
         }
-        // select latest
-        if (days.length) daySel.value = days[days.length-1];
+        if (days.length) daySel.value = days[days.length-1]; // default to latest
       };
       setDays();
 
-      // When city changes, refresh day list (keep latest), chart, KPIs
       citySel.addEventListener("change", ()=>{
         setDays();
         const v = document.getElementById("varSel").value;
@@ -243,7 +267,6 @@
         rebuildChart(citySel.value, daySel.value, v);
       });
 
-      // When day changes, rebuild
       daySel.addEventListener("change", ()=>{
         const v = document.getElementById("varSel").value;
         setMeta(citySel.value, daySel.value);
@@ -273,10 +296,15 @@
     Papa.parse(csvUrl, {
       download:true, header:true, dynamicTyping:true,
       complete: (res)=>{
-        rows = res.data.filter(r=>r.day && r.city && r.var); // basic guard
-        // stamp "generated" if present; otherwise use latest day
+        rows = res.data.filter(r=>r.day && r.city && r.var);
+        if (!rows.length){
+          document.getElementById("foot").textContent = "No data in metrics_history.csv";
+          return;
+        }
+        // prefer generated_at if present; else latest day
         const gen = rows[0]?.generated_at || "";
-        document.getElementById("updated").textContent = gen || (rows.map(r=>r.day).sort().slice(-1)[0] || "—");
+        document.getElementById("updated").textContent =
+          gen || (rows.map(r=>r.day).sort().slice(-1)[0] || "—");
 
         populateSelectors();
         initUI();
@@ -289,7 +317,8 @@
         rebuildChart(city, day, v);
         updateKpis(city, day, v);
 
-        document.getElementById("foot").textContent = "Tip: Use the Metric button to toggle between MAE, RMSE and Bias.";
+        document.getElementById("foot").textContent =
+          "Tip: Switch Day to “All days” to compare curves across the entire history window.";
       },
       error: (err)=>{
         document.getElementById("foot").textContent = "Failed to load CSV: " + err;
