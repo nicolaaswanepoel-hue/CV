@@ -27,9 +27,10 @@ services:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
       AIRFLOW__CORE__LOAD_EXAMPLES: "False"
+      OUTPUT_DIR: /opt/airflow/docs/data
     volumes:
-      - ../airflow/dags:/opt/airflow/dags
-      - ../docs:/opt/site
+      - ${HOST_PROJECT_ROOT}/airflow/dags:/opt/airflow/dags
+      - ${HOST_PROJECT_ROOT}/docs:/opt/airflow/docs
     ports:
       - "8080:8080"
     command: >
@@ -52,9 +53,10 @@ services:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
       AIRFLOW__CORE__LOAD_EXAMPLES: "False"
+      OUTPUT_DIR: /opt/airflow/docs/data
     volumes:
-      - ../airflow/dags:/opt/airflow/dags
-      - ../docs:/opt/site
+      - ${HOST_PROJECT_ROOT}/airflow/dags:/opt/airflow/dags
+      - ${HOST_PROJECT_ROOT}/docs:/opt/airflow/docs
     command: >
       bash -lc "
       airflow db upgrade &&
