@@ -1,9 +1,9 @@
 name: CI — Airflow DAGs
 on:
   push:
-    paths: ["docker/dags/**/*.py", ".github/workflows/ci-dags.yml"]
+    branches: ["**"]
   pull_request:
-    paths: ["docker/dags/**/*.py"]
+  workflow_dispatch:
 permissions:
   contents: read
 
@@ -13,12 +13,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Call shared setup (ruff, mypy, types-requests installed here)
       - uses: nicolaaswanepoel-hue/CV/.github/workflows/_setup-python-tooling.yml@main
         with:
           python-version: "3.11"
 
-      # Stub Airflow so imports succeed without installing Airflow
       - name: Airflow import stubs
         run: |
           python - <<'PY'
