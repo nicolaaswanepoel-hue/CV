@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
-from airflow import DAG
-from airflow.operators.python import PythonOperator
+from airflow import DAG  # type: ignore[attr-defined]
+from airflow.operators.python import PythonOperator  # type: ignore[attr-defined]
 import logging
 import os
 import psycopg2
