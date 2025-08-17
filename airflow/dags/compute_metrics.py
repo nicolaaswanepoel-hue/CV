@@ -39,7 +39,7 @@ def ensure_table():
       );
     """
     )
-    # helpful composite index for fast dedupe/query
+    # helpful composite index for fast dedupe/queries
     cur.execute(
         """
       CREATE INDEX IF NOT EXISTS ix_metrics_daily_day_city_var_h
