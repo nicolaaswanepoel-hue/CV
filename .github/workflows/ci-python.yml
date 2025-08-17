@@ -27,4 +27,4 @@ jobs:
         run: mypy --ignore-missing-imports .
 
       - name: pytest
-        run: pytest -q || echo "No tests yet — add some when ready."
+        run: pytest -q || echo "No tests yet — add some when ready." 
