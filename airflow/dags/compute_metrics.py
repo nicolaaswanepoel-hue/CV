@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
-from airflow import DAG
-from airflow.operators.python import PythonOperator
+from airflow import DAG  # type: ignore[attr-defined]
+from airflow.operators.python import PythonOperator  # type: ignore[attr-defined]
 import logging
 import os
 import psycopg2
@@ -39,7 +39,7 @@ def ensure_table():
       );
     """
     )
-    # helpful composite index for fast dedupe/queries
+    # helpful composite index for fast dedupe/query
     cur.execute(
         """
       CREATE INDEX IF NOT EXISTS ix_metrics_daily_day_city_var_h
