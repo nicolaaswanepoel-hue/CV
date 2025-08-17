@@ -11,9 +11,10 @@ jobs:
   dag-checks:
     runs-on: ubuntu-latest
     steps:
+      - run: echo "CI — Airflow DAGs starting on ${{ github.ref }} (event=${{ github.event_name }})"
       - uses: actions/checkout@v4
 
-      - uses: nicolaaswanepoel-hue/CV/.github/workflows/_setup-python-tooling.yml@main
+      - uses: ./.github/actions/setup-python-tooling
         with:
           python-version: "3.11"
 
@@ -30,14 +31,14 @@ print("Stubbed minimal airflow modules for import checks.")
 PY
 
       - name: Ruff (style)
-        run: ruff check docker/dags
+        run: ruff check airflow/dags
 
       - name: Syntax/import check
         run: |
-          python -m py_compile $(git ls-files "docker/dags/**/*.py")
+          python -m py_compile $(git ls-files "airflow/dags/**/*.py")
           python - <<'PY'
 import importlib, pathlib
-for p in pathlib.Path("docker/dags").rglob("*.py"):
+for p in pathlib.Path("airflow/dags").rglob("*.py"):
     mod = p.with_suffix("").as_posix().replace("/", ".")
     print("Importing", mod)
     importlib.import_module(mod)
@@ -45,4 +46,4 @@ print("All DAG modules import successfully (with stubs).")
 PY
 
       - name: Mypy (type checks)
-        run: mypy --ignore-missing-imports docker/dags
+        run: mypy --ignore-missing-imports airflow/dags

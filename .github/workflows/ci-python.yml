@@ -11,9 +11,10 @@ jobs:
   python:
     runs-on: ubuntu-latest
     steps:
+      - run: echo "CI — Python starting on ${{ github.ref }} (event=${{ github.event_name }})"
       - uses: actions/checkout@v4
 
-      - uses: nicolaaswanepoel-hue/CV/.github/workflows/_setup-python-tooling.yml@main
+      - uses: ./.github/actions/setup-python-tooling
         with:
           python-version: "3.11"
 
@@ -27,4 +28,4 @@ jobs:
         run: mypy --ignore-missing-imports .
 
       - name: pytest
-        run: pytest -q || echo "No tests yet — add some when ready." 
+        run: pytest -q || echo "No tests yet — add some when ready."
