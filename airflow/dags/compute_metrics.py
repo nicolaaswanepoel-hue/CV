@@ -179,51 +179,69 @@ def compute_for_yesterday():
         conn.close()
 
 
-def export_latest_csv():
-    log.info("export_latest_csv: start")
+def export_csvs():
+    log.info("export_csvs: start")
+    ndays = int(os.environ.get("METRICS_HISTORY_DAYS", "30"))  # rolling window
     conn = psycopg2.connect(**PG)
     try:
-        q = """
-        WITH d AS (
-          SELECT MAX(mday) AS day
-          FROM (SELECT (day) AS mday FROM weather.metrics_daily) AS x
-        )
-        SELECT
-          m.day,
-          m.city,
-          m.var,
-          m.horizon_hours,
-          m.mae,
-          m.rmse,
-          m.bias
-        FROM weather.metrics_daily AS m
-        JOIN d ON m.day = d.day
-        WHERE m.horizon_hours >= 0      -- keep negatives out of the CSV
-        ORDER BY m.var, m.horizon_hours;
+        # Find the most recent day we’ve computed
+        q_max = "SELECT MAX(day) AS max_day FROM weather.metrics_daily"
+        max_day = pd.read_sql(q_max, conn).iloc[0]["max_day"]
+        if pd.isna(max_day):
+            log.warning("export_csvs: no metrics yet")
+            return
+
+        # Pull the latest day for metrics_latest.csv
+        q_latest = """
+            SELECT day, city, var, horizon_hours, mae, rmse, bias
+            FROM weather.metrics_daily
+            WHERE day = %(day)s AND horizon_hours >= 0
+            ORDER BY var, horizon_hours;
         """
-        df = pd.read_sql(q, conn)
+        df_latest = pd.read_sql(q_latest, conn, params={"day": max_day})
+
+        # Pull a rolling window for metrics_history.csv (relative to max_day)
+        min_day = pd.to_datetime(max_day) - pd.Timedelta(days=ndays - 1)
+        q_hist = """
+            SELECT day, city, var, horizon_hours, mae, rmse, bias
+            FROM weather.metrics_daily
+            WHERE day >= %(min_day)s AND day <= %(max_day)s
+              AND horizon_hours >= 0
+            ORDER BY day, city, var, horizon_hours;
+        """
+        df_hist = pd.read_sql(
+            q_hist, conn, params={"min_day": min_day, "max_day": max_day}
+        )
     finally:
         conn.close()
 
-    if df.empty:
-        log.warning("export_latest_csv: no rows to export (after horizon filter)")
+    if df_latest.empty or df_hist.empty:
+        log.warning(
+            "export_csvs: nothing to export (latest=%d, hist=%d)",
+            len(df_latest),
+            len(df_hist),
+        )
         return
 
     from datetime import datetime as dt
 
-    df.insert(0, "generated_at", dt.utcnow().isoformat(timespec="seconds") + "Z")
+    gen = dt.utcnow().isoformat(timespec="seconds") + "Z"
+    df_latest.insert(0, "generated_at", gen)
+    df_hist.insert(0, "generated_at", gen)
 
     outdir = Path("/opt/site/data")
     outdir.mkdir(parents=True, exist_ok=True)
 
-    day_str = pd.to_datetime(df["day"].max()).strftime("%Y-%m-%d")
-    latest = outdir / "metrics_latest.csv"
-    dated = outdir / f"metrics_{day_str}.csv"
+    day_str = pd.to_datetime(df_latest["day"].max()).strftime("%Y-%m-%d")
+    (outdir / "metrics_latest.csv").write_text(df_latest.to_csv(index=False))
+    (outdir / f"metrics_{day_str}.csv").write_text(df_latest.to_csv(index=False))
+    (outdir / "metrics_history.csv").write_text(df_hist.to_csv(index=False))
 
-    df.to_csv(latest, index=False)
-    df.to_csv(dated, index=False)
-
-    log.info("export_latest_csv: wrote %d rows to %s and %s", len(df), latest, dated)
+    log.info(
+        "export_csvs: wrote latest (%d rows) and history (%d rows)",
+        len(df_latest),
+        len(df_hist),
+    )
 
 
 with DAG(
@@ -238,8 +256,5 @@ with DAG(
     compute = PythonOperator(
         task_id="compute_for_yesterday", python_callable=compute_for_yesterday
     )
-    export = PythonOperator(
-        task_id="export_latest_csv", python_callable=export_latest_csv
-    )
-
+    export = PythonOperator(task_id="export_csvs", python_callable=export_csvs)
     ensure >> compute >> export
