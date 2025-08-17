@@ -36,7 +36,7 @@
     .controls label{display:flex;gap:8px;align-items:center}
     select,button{background:#0e1532;color:var(--ink);border:1px solid var(--border);border-radius:12px;padding:9px 11px}
     .seg{display:inline-flex;border:1px solid var(--border);border-radius:12px;overflow:hidden}
-    .seg button{border:none;background:#0e1532;padding:9px 12px}
+    .seg button{border:none;background:#0e1532;padding:9px 12px;cursor:pointer}
     .seg button.active{background:#172250;box-shadow:inset 0 0 0 1px var(--border)}
 
     .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:8px 0 12px}
@@ -53,7 +53,7 @@
 
     canvas{width:100%!important;height:440px!important;filter:drop-shadow(var(--glow))}
     .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
-    .chip{padding:6px 10px;border:1px solid var(--border);border-radius:999px;background:#0e1532;color:var(--ink);cursor:pointer;font-size:13px;opacity:.8}
+    .chip{padding:6px 10px;border:1px solid var(--border);border-radius:999px;background:#0e1532;color:var(--ink);cursor:pointer;font-size:13px;opacity:.85}
     .chip.active{opacity:1;background:#172250}
     .mini{font-size:12px;color:#9aa7ff;margin-top:6px}
     footer{color:var(--muted);margin-top:14px;font-size:12px}
@@ -142,12 +142,8 @@
         </div>
 
         <div class="toolbar">
-          <a class="linkbtn" id="btnLatest" href="./data/metrics_latest.csv" download>
-            ⬇️ Download latest
-          </a>
-          <a class="linkbtn" id="btnHistory" href="./data/metrics_history.csv" download>
-            ⬇️ Download history
-          </a>
+          <a class="linkbtn" id="btnLatest" href="./data/metrics_latest.csv" download>⬇️ Download latest</a>
+          <a class="linkbtn" id="btnHistory" href="./data/metrics_history.csv" download>⬇️ Download history</a>
           <button id="share" class="linkbtn">🔗 Copy share link</button>
         </div>
 
@@ -236,17 +232,43 @@
       document.getElementById("foot").textContent = "Tip: Toggle Single day / All days and click chips to isolate specific days.";
     }
 
-    function colorFromString(s){
-      // deterministic HSL from string
-      let h=0; for (let i=0;i<s.length;i++) h=(h*31 + s.charCodeAt(i)) % 360;
-      return `hsl(${h}, 70%, 60%)`;
-    }
-
     function gradientStroke(ctx){
       const g = ctx.createLinearGradient(0,0,0,ctx.canvas.height);
       g.addColorStop(0,"rgba(122,162,255,1)");
       g.addColorStop(1,"rgba(122,162,255,.2)");
       return g;
+    }
+
+    // --- color helpers for multi-day mode ---
+    const PALETTE = [
+      "#4e79a7","#f28e2b","#e15759","#76b7b2","#59a14f",
+      "#edc948","#b07aa1","#ff9da7","#9c755f","#bab0ab",
+      "#8cd17d","#b6992d","#499894","#86bcb6","#fe7f0e",
+    ];
+    let paletteIndex = 0;
+    const dayColorCache = new Map();
+
+    function rgba(hex, a=1){
+      const x = hex.replace("#",""); const r=parseInt(x.substr(0,2),16), g=parseInt(x.substr(2,2),16), b=parseInt(x.substr(4,2),16);
+      return `rgba(${r},${g},${b},${a})`;
+    }
+    function shufflePalette(){
+      for (let i=PALETTE.length-1;i>0;i--){
+        const j=Math.floor(Math.random()*(i+1)); [PALETTE[i],PALETTE[j]]=[PALETTE[j],PALETTE[i]];
+      }
+    }
+    function resetDayColors(){
+      dayColorCache.clear();
+      paletteIndex = 0;
+      shufflePalette();
+    }
+    function getDayColor(day){
+      if (!dayColorCache.has(day)){
+        const color = PALETTE[paletteIndex % PALETTE.length];
+        paletteIndex++;
+        dayColorCache.set(day, color);
+      }
+      return dayColorCache.get(day);
     }
 
     // ---------- chart ----------
@@ -291,20 +313,24 @@
       const allH = horizonsFor(city, null, varName);
       const labels = allH;
 
-      const datasets = days.map((d, idx)=>{
-        const perDay = rows
-          .filter(r=>r.city===city && r.day===d && r.var===varName);
+      const datasets = days.map((d)=> {
+        const perDay = rows.filter(r=>r.city===city && r.day===d && r.var===varName);
         const map = new Map(perDay.map(r=>[+r.horizon_hours, +r[metricMode]]));
         const serie = labels.map(h=> map.has(h) ? map.get(h) : null);
-        const color = colorFromString(d);
+
+        const hex = getDayColor(d);
         return {
           label: d,
           data: serie,
-          borderColor: color,
-          pointRadius: 0,
+          borderColor: hex,
+          backgroundColor: rgba(hex, 0.18),
+          pointBackgroundColor: hex,
+          pointBorderColor: hex,
+          pointRadius: 2,
           tension: .25,
           borderWidth: 2,
-          spanGaps: true
+          spanGaps: true,
+          fill: false
         };
       });
 
@@ -362,7 +388,7 @@
           if (selectedDays.includes(d)) selectedDays = selectedDays.filter(x=>x!==d);
           else selectedDays = [...selectedDays, d];
           el.classList.toggle("active");
-          refresh(); // rebuild with new selection
+          refresh(); // keep colors stable on chip toggle
         };
         chips.appendChild(el);
       });
@@ -472,6 +498,7 @@
     function refresh(){
       const city = document.getElementById("citySel").value;
       const varName = document.getElementById("varSel").value;
+
       if (viewMode==="single"){
         const day = document.getElementById("daySel").value;
         setMeta(city, day);
@@ -498,13 +525,17 @@
 
         // wire selectors
         document.getElementById("citySel").addEventListener("change", ()=>{
+          resetDayColors();
           populateDays(document.getElementById("citySel").value);
           refresh();
         });
-        document.getElementById("varSel").addEventListener("change", refresh);
+        document.getElementById("varSel").addEventListener("change", ()=>{
+          resetDayColors();
+          refresh();
+        });
         document.getElementById("daySel").addEventListener("change", refresh);
-        document.getElementById("modeSingle").addEventListener("click", ()=>setMode("single"));
-        document.getElementById("modeMulti").addEventListener("click", ()=>setMode("multi"));
+        document.getElementById("modeSingle").addEventListener("click", ()=>{ resetDayColors(); setMode("single"); });
+        document.getElementById("modeMulti").addEventListener("click",  ()=>{ resetDayColors(); setMode("multi");  });
         document.getElementById("toggleMetric").addEventListener("click",(e)=>{
           metricMode = metricMode==="mae" ? "rmse" : metricMode==="rmse" ? "bias" : "mae";
           e.target.textContent = "Metric: " + (metricMode==="mae"?"Average Miss (MAE)":metricMode==="rmse"?"Big Miss (RMSE)":"Lean (Bias)");
@@ -513,6 +544,7 @@
         document.getElementById("share").addEventListener("click", shareLink);
 
         // restore state (URL wins over localStorage)
+        resetDayColors();
         if (!restoreFromUrl()) restoreState();
         refresh();
       },
