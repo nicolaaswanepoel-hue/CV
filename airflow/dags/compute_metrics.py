@@ -229,7 +229,7 @@ def export_csvs():
     df_latest.insert(0, "generated_at", gen)
     df_hist.insert(0, "generated_at", gen)
 
-    outdir = Path("/opt/site/data")
+    outdir = Path(os.environ.get("OUTPUT_DIR", "/opt/airflow/docs/data"))
     outdir.mkdir(parents=True, exist_ok=True)
 
     day_str = pd.to_datetime(df_latest["day"].max()).strftime("%Y-%m-%d")
