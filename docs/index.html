@@ -6,66 +6,80 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="description" content="Live snapshot of forecast accuracy by city and day. API → Docker → Airflow → Postgres → CSV → GitHub Pages." />
 
-  <!-- Open Graph -->
   <meta property="og:title" content="Forecast Accuracy — Nico’s Weather Lab">
-  <meta property="og:description" content="How close were forecasts to reality? Explore errors across hours within the day, by city.">
+  <meta property="og:description" content="How close were forecasts to reality? Explore errors by hour, across days and cities.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://nicolaaswanepoel-hue.github.io/CV/">
   <meta name="twitter:card" content="summary_large_image">
 
-  <!-- libs -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
   <style>
-    :root { --bg:#0c1224; --ink:#e9edff; --muted:#9aa7ff; --card:#121a39; --border:#263169; --accent:#7aa2ff; }
+    :root {
+      --bg:#0c1224; --ink:#e9edff; --muted:#9aa7ff; --card:#121a39; --border:#263169; --accent:#7aa2ff;
+      --glow: 0 0 25px rgba(122,162,255,.35), 0 0 50px rgba(122,162,255,.18);
+    }
     *{box-sizing:border-box}
-    html,body{margin:0;font:16px/1.5 ui-sans-serif,system-ui,Segoe UI,Roboto,Ubuntu;background:var(--bg);color:var(--ink)}
-    a{color:#cfe1ff;text-decoration:none} a:hover{text-decoration:underline}
-    .wrap{max-width:1050px;margin:42px auto;padding:0 16px}
-    h1{margin:0 0 6px;font-size:28px}
+    html,body{margin:0;font:16px/1.5 ui-sans-serif,system-ui,Segoe UI,Roboto,Ubuntu;background:radial-gradient(1200px 600px at 20% -10%, #192553 0%, transparent 60%), var(--bg);color:var(--ink)}
+    a{color:#cfe1ff;text-decoration:none}
+    a:hover{text-decoration:underline}
+    .wrap{max-width:1100px;margin:42px auto;padding:0 16px}
+    h1{margin:0 0 6px;font-size:30px;letter-spacing:.3px}
     .sub{margin:0 0 16px;color:var(--muted)}
     .badges img{vertical-align:middle;margin-right:6px}
     .grid{display:grid;grid-template-columns:1fr;gap:16px;margin-top:14px}
-    @media (min-width:900px){ .grid{grid-template-columns:2fr 1fr} }
+    @media (min-width:1000px){ .grid{grid-template-columns:2fr 1fr} }
 
     .card{background:linear-gradient(180deg,#111836,#0b1230);border:1px solid var(--border);border-radius:18px;padding:18px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
     .controls{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
-    label{display:flex;gap:8px;align-items:center}
+    .controls label{display:flex;gap:8px;align-items:center}
     select,button{background:#0e1532;color:var(--ink);border:1px solid var(--border);border-radius:12px;padding:9px 11px}
+    .seg{display:inline-flex;border:1px solid var(--border);border-radius:12px;overflow:hidden}
+    .seg button{border:none;background:#0e1532;padding:9px 12px}
+    .seg button.active{background:#172250;box-shadow:inset 0 0 0 1px var(--border)}
 
-    .kpis{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0 12px}
-    .kpi{flex:1;min-width:190px;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px}
+    .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:8px 0 12px}
+    .kpi{min-width:180px;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px}
     .kpi .label{color:#8fa0ff;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
-    .kpi .value{font-size:22px;margin-top:6px}
+    .kpi .value{font-size:22px;margin-top:6px;display:flex;align-items:center;gap:8px}
+    .delta{font-size:13px;color:#9aa7ff}
+    .delta.up{color:#7ef77e}
+    .delta.down{color:#ffa9a9}
+
+    .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 8px}
+    .linkbtn{font-size:14px}
+    .linkbtn svg{vertical-align:middle;margin-right:6px}
+
+    canvas{width:100%!important;height:440px!important;filter:drop-shadow(var(--glow))}
+    .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+    .chip{padding:6px 10px;border:1px solid var(--border);border-radius:999px;background:#0e1532;color:var(--ink);cursor:pointer;font-size:13px;opacity:.8}
+    .chip.active{opacity:1;background:#172250}
     .mini{font-size:12px;color:#9aa7ff;margin-top:6px}
-    canvas{width:100%!important;height:420px!important}
+    footer{color:var(--muted);margin-top:14px;font-size:12px}
 
     .stack{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:flex-start}
     .node{background:#0e1532;border:1px solid var(--border);border-radius:12px;padding:8px 12px;white-space:nowrap}
     .arrow{color:var(--muted);font-size:20px}
-    footer{color:var(--muted);margin-top:14px;font-size:12px}
   </style>
 </head>
 <body>
   <div class="wrap">
     <h1>Forecast Accuracy</h1>
     <p class="sub">
-      “How far off were we?” — Pick a city and see how errors change by hour within the day (or compare all days).
+      “How far off were we?” — Pick a city and explore error by forecast lead time. Toggle single day vs. all-days overlay.
       <span id="meta"></span>
     </p>
 
     <div class="badges">
-      <!-- CI status (click to view runs) -->
+      <!-- CI status -->
       <a href="https://github.com/nicolaaswanepoel-hue/CV/actions/workflows/ci-python.yml" rel="noopener">
         <img alt="CI — Python" src="https://github.com/nicolaaswanepoel-hue/CV/actions/workflows/ci-python.yml/badge.svg?branch=main">
       </a>
-
-      <!-- Git repo badges -->
+      <!-- Repo freshness -->
       <a href="https://github.com/nicolaaswanepoel-hue/CV" rel="noopener">
         <img alt="Last commit" src="https://img.shields.io/github/last-commit/nicolaaswanepoel-hue/CV?label=last%20commit">
       </a>
-
       <!-- Tech stack -->
       <img alt="Airflow" src="https://img.shields.io/badge/Airflow-2.9-blue">
       <img alt="Python" src="https://img.shields.io/badge/Python-3.11-blue">
@@ -82,9 +96,6 @@
           <label>City:
             <select id="citySel"></select>
           </label>
-          <label>Day:
-            <select id="daySel"></select>
-          </label>
           <label>Variable:
             <select id="varSel">
               <option value="temperature_2m">Temperature (°C)</option>
@@ -92,16 +103,55 @@
               <option value="wind_speed_10m">Wind speed (m/s)</option>
             </select>
           </label>
+
+          <div class="seg" role="tablist" aria-label="View mode">
+            <button id="modeSingle" class="active" aria-selected="true">Single day</button>
+            <button id="modeMulti" aria-selected="false">All days</button>
+          </div>
+
           <button id="toggleMetric">Metric: Average Miss (MAE)</button>
         </div>
 
-        <div class="kpis">
-          <div class="kpi"><div class="label">Typical miss (MAE)</div><div class="value" id="kpi-mae">—</div><div class="mini">Average absolute error across hours in selection</div></div>
-          <div class="kpi"><div class="label">Big misses weighted (RMSE)</div><div class="value" id="kpi-rmse">—</div><div class="mini">Large errors count extra</div></div>
-          <div class="kpi"><div class="label">Lean (Bias)</div><div class="value" id="kpi-bias">—</div><div class="mini">+ forecast high · – forecast low</div></div>
+        <div class="controls" id="singleControls">
+          <label>Day:
+            <select id="daySel"></select>
+          </label>
         </div>
 
-        <canvas id="chart" aria-label="Accuracy across hours within the day"></canvas>
+        <div class="controls" id="multiControls" style="display:none">
+          <div class="mini">Days (click to toggle):</div>
+          <div id="dayChips" class="chips"></div>
+        </div>
+
+        <div class="kpis">
+          <div class="kpi">
+            <div class="label">Typical miss (MAE)</div>
+            <div class="value"><span id="kpi-mae">—</span> <span id="delta-mae" class="delta"></span></div>
+            <div class="mini">Average absolute error across selected hours</div>
+          </div>
+          <div class="kpi">
+            <div class="label">Big misses weighted (RMSE)</div>
+            <div class="value"><span id="kpi-rmse">—</span> <span id="delta-rmse" class="delta"></span></div>
+            <div class="mini">Large errors count extra</div>
+          </div>
+          <div class="kpi">
+            <div class="label">Lean (Bias)</div>
+            <div class="value"><span id="kpi-bias">—</span> <span id="delta-bias" class="delta"></span></div>
+            <div class="mini">+ means forecast ran high; – means low</div>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <a class="linkbtn" id="btnLatest" href="./data/metrics_latest.csv" download>
+            ⬇️ Download latest
+          </a>
+          <a class="linkbtn" id="btnHistory" href="./data/metrics_history.csv" download>
+            ⬇️ Download history
+          </a>
+          <button id="share" class="linkbtn">🔗 Copy share link</button>
+        </div>
+
+        <canvas id="chart" aria-label="Accuracy across hours"></canvas>
         <footer id="foot">Loading…</footer>
       </div>
 
@@ -109,8 +159,9 @@
       <div class="card">
         <h3 style="margin-top:0">What am I looking at?</h3>
         <p class="mini">
-          For the selected city and day, we compare hourly forecasts to what actually happened.
-          Switch Day to <b>All days</b> to overlay each day’s error curve and spot patterns.
+          For the selected city and day(s), we compare hourly forecasts to what actually happened.
+          The line shows error vs. “hours ahead” (how far in advance the forecast was made).
+          Toggle “All days” to see multiple days overlaid (click chips to isolate).
         </p>
         <h3 style="margin-bottom:6px">How it works</h3>
         <p class="mini">API → Docker → Airflow → Postgres → CSV → GitHub Pages</p>
@@ -124,7 +175,7 @@
         </div>
         <p class="mini" style="margin-top:10px">
           Batch DAGs compute MAE, RMSE and Bias by horizon and export
-          <code>docs/data/metrics_history.csv</code> (last N days) plus <code>metrics_latest.csv</code> (latest day).
+          <code>docs/data/metrics_history.csv</code> (and <code>metrics_latest.csv</code>) which power this page.
         </p>
         <p class="mini">Source: <a href="https://github.com/nicolaaswanepoel-hue/CV" rel="noopener">github.com/nicolaaswanepoel-hue/CV</a></p>
         <p class="mini">Data generated: <span id="updated">—</span></p>
@@ -134,9 +185,11 @@
 
   <script>
     // ---------- data & helpers ----------
-    const csvUrl = "./data/metrics_history.csv?v=" + Date.now(); // multi-day history
+    const csvUrl = "./data/metrics_history.csv?v=" + Date.now(); // cache-bust
     let rows = [];
     let metricMode = "mae"; // mae -> rmse -> bias
+    let viewMode = "single"; // "single" | "multi"
+    let selectedDays = [];   // for multi mode
 
     const unitsByVar = {
       temperature_2m: "°C",
@@ -148,168 +201,320 @@
       metricMode==="rmse" ? "Big misses weighted (RMSE)" :
       "Lean (Bias)";
 
-    const numFmt = (v, d=1) => (v==null || Number.isNaN(+v)) ? "—" : (+v).toFixed(d);
-    const uniq = (arr) => [...new Set(arr)];
+    const numFmt = (v, d=2) => (v==null || Number.isNaN(+v)) ? "—" : (+v).toFixed(d);
+    const uniq = arr => [...new Set(arr)];
+    const by = k => (a,b)=> (a[k] < b[k] ? -1 : a[k] > b[k] ? 1 : 0);
 
-    function cityOptions(){
-      return uniq(rows.map(r=>r.city)).sort((a,b)=>a.localeCompare(b));
-    }
-    function dayOptions(city){
-      return uniq(rows.filter(r=>r.city===city).map(r=>r.day))
-        .sort((a,b)=>a.localeCompare(b)); // ISO dates sort lexically
-    }
+    const getCities = ()=> uniq(rows.map(r=>r.city)).sort((a,b)=>a.localeCompare(b));
+    const getDaysForCity = (c)=> uniq(rows.filter(r=>r.city===c).map(r=>r.day)).sort((a,b)=>a.localeCompare(b));
+    const horizonsFor = (c,d,v)=> uniq(rows.filter(r=>r.city===c && r.var===v && (d? r.day===d : true)).map(r=>+r.horizon_hours)).sort((a,b)=>a-b);
 
     function summarize(city, day, varName){
-      let s = rows.filter(r=>r.city===city && r.var===varName);
-      if (day !== "__ALL__") s = s.filter(r=>r.day===day);
+      const s = rows.filter(r=>r.city===city && r.day===day && r.var===varName);
+      const avg = k => s.length ? s.reduce((a,x)=>a + (+x[k]),0)/s.length : null;
+      return { mae: avg("mae"), rmse: avg("rmse"), bias: avg("bias") };
+    }
+    function summarizeMulti(city, days, varName){
+      const s = rows.filter(r=>r.city===city && days.includes(r.day) && r.var===varName);
       const avg = k => s.length ? s.reduce((a,x)=>a + (+x[k]),0)/s.length : null;
       return { mae: avg("mae"), rmse: avg("rmse"), bias: avg("bias") };
     }
 
-    function setMeta(city, day){
-      document.getElementById("meta").textContent =
-        ` — City: ${city} · ${day==="__ALL__" ? "All days" : "Day: " + day}`;
+    function deltaTxt(now, prev){
+      if (now==null || prev==null) return "";
+      const d = (+now) - (+prev);
+      const cls = d > 0 ? "up" : d < 0 ? "down" : "";
+      const arrow = d > 0 ? "▲" : d < 0 ? "▼" : "–";
+      return `<span class="delta ${cls}">${arrow} ${numFmt(Math.abs(d))}</span>`;
     }
 
-    function updateKpis(city, day, varName){
-      const s = summarize(city, day, varName);
-      document.getElementById("kpi-mae").textContent  = numFmt(s.mae);
-      document.getElementById("kpi-rmse").textContent = numFmt(s.rmse);
-      document.getElementById("kpi-bias").textContent = numFmt(s.bias);
+    function setMeta(city, days){
+      const gen = rows[0]?.generated_at || "";
+      document.getElementById("updated").textContent = gen || (rows.map(r=>r.day).sort().slice(-1)[0] || "—");
+      const label = Array.isArray(days) ? `${days.length} day${days.length>1?"s":""}` : days;
+      document.getElementById("meta").textContent = ` — City: ${city} · ${Array.isArray(days) ? "Days: " + label : "Day: " + (label||"—")}`;
+      document.getElementById("foot").textContent = "Tip: Toggle Single day / All days and click chips to isolate specific days.";
+    }
+
+    function colorFromString(s){
+      // deterministic HSL from string
+      let h=0; for (let i=0;i<s.length;i++) h=(h*31 + s.charCodeAt(i)) % 360;
+      return `hsl(${h}, 70%, 60%)`;
+    }
+
+    function gradientStroke(ctx){
+      const g = ctx.createLinearGradient(0,0,0,ctx.canvas.height);
+      g.addColorStop(0,"rgba(122,162,255,1)");
+      g.addColorStop(1,"rgba(122,162,255,.2)");
+      return g;
     }
 
     // ---------- chart ----------
-    function rebuildChart(city, day, varName){
-      const byCityVar = rows.filter(r=>r.city===city && r.var===varName);
+    let chart;
+    function rebuildChartSingle(city, day, varName){
+      const data = rows
+        .filter(r=>r.city===city && r.day===day && r.var===varName)
+        .sort((a,b)=>(+a.horizon_hours)-(+b.horizon_hours));
 
-      // Union of horizons (stable x-axis)
-      const horizons = uniq(byCityVar.map(r=>+r.horizon_hours)).sort((a,b)=>a-b);
-      const labels = horizons;
+      const labels = data.map(r=>r.horizon_hours);
+      const series = data.map(r=>+r[metricMode]);
 
-      let datasets = [];
+      if (chart) chart.destroy();
+      const ctx = document.getElementById("chart").getContext("2d");
+      chart = new Chart(ctx, {
+        type:"line",
+        data:{ labels, datasets:[{
+          label: metricLabel(),
+          data: series,
+          borderWidth:2,
+          borderColor: gradientStroke(ctx),
+          tension:.25,
+          pointRadius:2,
+          fill:false
+        }]},
+        options:{
+          responsive:true,
+          interaction:{mode:"nearest",intersect:false},
+          plugins:{
+            legend:{display:false},
+            tooltip:{callbacks:{label:(c)=>`${metricLabel()}: ${numFmt(c.parsed.y)} ${unitsByVar[varName]||""}`}}
+          },
+          scales:{
+            x:{title:{display:true,text:"Hours ahead (forecast lead time)"}, grid:{color:"rgba(255,255,255,.05)"}},
+            y:{title:{display:true,text:`Error (${unitsByVar[varName]||"units"})`}, grid:{color:"rgba(255,255,255,.06)"}}
+          }
+        }
+      });
+    }
 
-      if (day === "__ALL__"){
-        const days = uniq(byCityVar.map(r=>r.day)).sort((a,b)=>a.localeCompare(b));
-        datasets = days.map(d=>{
-          const map = new Map(byCityVar.filter(r=>r.day===d).map(r=>[+r.horizon_hours, +r[metricMode]]));
-          const series = horizons.map(h=> (map.has(h) ? map.get(h) : null));
-          return { label: d, data: series, borderWidth: 2, tension: .2, pointRadius: 2 };
-        });
-      } else {
-        const map = new Map(byCityVar.filter(r=>r.day===day).map(r=>[+r.horizon_hours, +r[metricMode]]));
-        const series = horizons.map(h=> (map.has(h) ? map.get(h) : null));
-        datasets = [{ label: metricLabel(), data: series, borderWidth: 2, tension: .2, pointRadius: 3 }];
-      }
+    function rebuildChartMulti(city, days, varName){
+      const allH = horizonsFor(city, null, varName);
+      const labels = allH;
 
-      if (window.ct) window.ct.destroy();
-      const ctx = document.getElementById("chart");
-      window.ct = new Chart(ctx, {
+      const datasets = days.map((d, idx)=>{
+        const perDay = rows
+          .filter(r=>r.city===city && r.day===d && r.var===varName);
+        const map = new Map(perDay.map(r=>[+r.horizon_hours, +r[metricMode]]));
+        const serie = labels.map(h=> map.has(h) ? map.get(h) : null);
+        const color = colorFromString(d);
+        return {
+          label: d,
+          data: serie,
+          borderColor: color,
+          pointRadius: 0,
+          tension: .25,
+          borderWidth: 2,
+          spanGaps: true
+        };
+      });
+
+      if (chart) chart.destroy();
+      const ctx = document.getElementById("chart").getContext("2d");
+      chart = new Chart(ctx, {
         type:"line",
         data:{ labels, datasets },
         options:{
           responsive:true,
+          interaction:{mode:"nearest",intersect:false},
           plugins:{
-            legend:{display:true},
-            tooltip:{callbacks:{label:(c)=>`${c.dataset.label}: ${numFmt(c.parsed.y)} ${unitsByVar[varName]||""}`}}
+            legend:{display:true, labels:{color:"#cfe1ff"}},
+            tooltip:{callbacks:{label:(c)=>`${c.dataset.label} — ${metricLabel()}: ${numFmt(c.parsed.y)} ${unitsByVar[varName]||""}`}}
           },
           scales:{
-            x:{title:{display:true,text:"Hours ahead (forecast lead time)"}},
-            y:{title:{display:true,text:`Error (${unitsByVar[varName]||"units"})`}}
+            x:{title:{display:true,text:"Hours ahead"}, grid:{color:"rgba(255,255,255,.05)"}},
+            y:{title:{display:true,text:`Error (${unitsByVar[varName]||"units"})`}, grid:{color:"rgba(255,255,255,.06)"}}
           }
         }
       });
     }
 
     // ---------- UI wiring ----------
-    function populateSelectors(){
+    function populateCity(){
       const citySel = document.getElementById("citySel");
-      const daySel  = document.getElementById("daySel");
-
-      // City options
       citySel.innerHTML = "";
-      for (const c of cityOptions()){
+      for (const c of getCities()){
         const o = document.createElement("option");
         o.value = o.textContent = c;
         citySel.appendChild(o);
       }
+    }
 
-      // Day options for the selected city (with "All days")
-      const setDays = ()=>{
-        const days = dayOptions(citySel.value);
-        daySel.innerHTML = "";
-        const all = document.createElement("option");
-        all.value = "__ALL__";
-        all.textContent = "All days";
-        daySel.appendChild(all);
-        for (const d of days){
-          const o = document.createElement("option");
-          o.value = o.textContent = d;
-          daySel.appendChild(o);
-        }
-        if (days.length) daySel.value = days[days.length-1]; // default to latest
-      };
-      setDays();
-
-      citySel.addEventListener("change", ()=>{
-        setDays();
-        const v = document.getElementById("varSel").value;
-        setMeta(citySel.value, daySel.value);
-        updateKpis(citySel.value, daySel.value, v);
-        rebuildChart(citySel.value, daySel.value, v);
-      });
-
-      daySel.addEventListener("change", ()=>{
-        const v = document.getElementById("varSel").value;
-        setMeta(citySel.value, daySel.value);
-        updateKpis(citySel.value, daySel.value, v);
-        rebuildChart(citySel.value, daySel.value, v);
+    function populateDays(city){
+      const daySel = document.getElementById("daySel");
+      const days = getDaysForCity(city);
+      daySel.innerHTML = "";
+      for (const d of days){
+        const o = document.createElement("option");
+        o.value = o.textContent = d;
+        daySel.appendChild(o);
+      }
+      if (days.length) daySel.value = days[days.length-1];
+      // chips for multi
+      const chips = document.getElementById("dayChips");
+      chips.innerHTML = "";
+      const defaultMulti = days.slice(-7); // last 7 by default
+      selectedDays = selectedDays.length ? selectedDays : defaultMulti;
+      days.forEach(d=>{
+        const el = document.createElement("div");
+        el.className = "chip" + (selectedDays.includes(d) ? " active":"");
+        el.textContent = d;
+        el.onclick = ()=>{
+          if (selectedDays.includes(d)) selectedDays = selectedDays.filter(x=>x!==d);
+          else selectedDays = [...selectedDays, d];
+          el.classList.toggle("active");
+          refresh(); // rebuild with new selection
+        };
+        chips.appendChild(el);
       });
     }
 
-    function initUI(){
-      const varSel = document.getElementById("varSel");
-      const citySel = document.getElementById("citySel");
-      const daySel  = document.getElementById("daySel");
+    function setMode(mode){
+      viewMode = mode;
+      document.getElementById("modeSingle").classList.toggle("active", mode==="single");
+      document.getElementById("modeMulti").classList.toggle("active", mode==="multi");
+      document.getElementById("singleControls").style.display = mode==="single" ? "" : "none";
+      document.getElementById("multiControls").style.display  = mode==="multi"  ? "" : "none";
+      refresh();
+    }
 
-      varSel.addEventListener("change", ()=>{
-        rebuildChart(citySel.value, daySel.value, varSel.value);
-        updateKpis(citySel.value, daySel.value, varSel.value);
-      });
+    function updateKpis(city, dayOrDays, varName){
+      let s, prev;
+      if (Array.isArray(dayOrDays)){
+        s = summarizeMulti(city, dayOrDays, varName);
+        document.getElementById("delta-mae").innerHTML = "";
+        document.getElementById("delta-rmse").innerHTML = "";
+        document.getElementById("delta-bias").innerHTML = "";
+      } else {
+        s = summarize(city, dayOrDays, varName);
+        // prev day delta
+        const days = getDaysForCity(city);
+        const idx = days.indexOf(dayOrDays);
+        const prevDay = idx>0 ? days[idx-1] : null;
+        prev = prevDay ? summarize(city, prevDay, varName) : null;
+        document.getElementById("delta-mae").innerHTML  = prev ? deltaTxt(s.mae, prev.mae)   : "";
+        document.getElementById("delta-rmse").innerHTML = prev ? deltaTxt(s.rmse, prev.rmse) : "";
+        document.getElementById("delta-bias").innerHTML = prev ? deltaTxt(s.bias, prev.bias) : "";
+      }
+      document.getElementById("kpi-mae").textContent  = numFmt(s.mae);
+      document.getElementById("kpi-rmse").textContent = numFmt(s.rmse);
+      document.getElementById("kpi-bias").textContent = numFmt(s.bias);
+    }
 
-      document.getElementById("toggleMetric").addEventListener("click",(e)=>{
-        metricMode = metricMode==="mae" ? "rmse" : metricMode==="rmse" ? "bias" : "mae";
-        e.target.textContent = "Metric: " + (metricMode==="mae"?"Average Miss (MAE)":metricMode==="rmse"?"Big Miss (RMSE)":"Lean (Bias)");
-        rebuildChart(citySel.value, daySel.value, varSel.value);
-      });
+    function shareLink(){
+      const city = document.getElementById("citySel").value;
+      const variable = document.getElementById("varSel").value;
+      const params = new URLSearchParams();
+      params.set("city", city);
+      params.set("var", variable);
+      params.set("metric", metricMode);
+      params.set("mode", viewMode);
+      if (viewMode==="single"){
+        params.set("day", document.getElementById("daySel").value);
+      } else {
+        if (selectedDays.length) params.set("days", selectedDays.join(","));
+      }
+      const url = `${location.origin}${location.pathname}?${params.toString()}`;
+      navigator.clipboard?.writeText(url);
+      const foot = document.getElementById("foot");
+      foot.textContent = "Share link copied!";
+      setTimeout(()=>foot.textContent="Tip: Toggle Single day / All days and click chips to isolate specific days.",2000);
+    }
+
+    function restoreFromUrl(){
+      const qs = new URLSearchParams(location.search);
+      const city = qs.get("city");
+      const variable = qs.get("var");
+      const metric = qs.get("metric");
+      const mode = qs.get("mode");
+      const day = qs.get("day");
+      const days = (qs.get("days")||"").split(",").filter(Boolean);
+
+      if (city && getCities().includes(city)) document.getElementById("citySel").value = city;
+      if (variable && unitsByVar[variable]) document.getElementById("varSel").value = variable;
+      if (metric) metricMode = metric;
+      if (mode==="multi" || mode==="single") viewMode = mode;
+
+      populateDays(document.getElementById("citySel").value);
+      if (day && getDaysForCity(document.getElementById("citySel").value).includes(day)) {
+        document.getElementById("daySel").value = day;
+      }
+      if (days.length) selectedDays = days;
+      setMode(viewMode);
+    }
+
+    function persistState(){
+      const s = {
+        city: document.getElementById("citySel").value,
+        var: document.getElementById("varSel").value,
+        metric: metricMode,
+        mode: viewMode,
+        day: document.getElementById("daySel").value,
+        days: selectedDays
+      };
+      localStorage.setItem("wxlab_state", JSON.stringify(s));
+    }
+    function restoreState(){
+      try{
+        const s = JSON.parse(localStorage.getItem("wxlab_state")||"{}");
+        if (!s.city) return false;
+        document.getElementById("citySel").value = s.city;
+        document.getElementById("varSel").value = s.var || "temperature_2m";
+        metricMode = s.metric || "mae";
+        viewMode = s.mode || "single";
+        populateDays(s.city);
+        if (s.day) document.getElementById("daySel").value = s.day;
+        selectedDays = Array.isArray(s.days) ? s.days : [];
+        setMode(viewMode);
+        return true;
+      }catch{ return false; }
+    }
+
+    function refresh(){
+      const city = document.getElementById("citySel").value;
+      const varName = document.getElementById("varSel").value;
+      if (viewMode==="single"){
+        const day = document.getElementById("daySel").value;
+        setMeta(city, day);
+        rebuildChartSingle(city, day, varName);
+        updateKpis(city, day, varName);
+      } else {
+        const days = selectedDays.length ? selectedDays : getDaysForCity(city).slice(-7);
+        setMeta(city, days);
+        rebuildChartMulti(city, days, varName);
+        updateKpis(city, days, varName);
+      }
+      persistState();
     }
 
     // ---------- load CSV ----------
     Papa.parse(csvUrl, {
       download:true, header:true, dynamicTyping:true,
       complete: (res)=>{
-        rows = res.data.filter(r=>r.day && r.city && r.var);
-        if (!rows.length){
-          document.getElementById("foot").textContent = "No data in metrics_history.csv";
-          return;
-        }
-        // prefer generated_at if present; else latest day
-        const gen = rows[0]?.generated_at || "";
-        document.getElementById("updated").textContent =
-          gen || (rows.map(r=>r.day).sort().slice(-1)[0] || "—");
+        rows = res.data.filter(r=>r.day && r.city && r.var); // basic guard
 
-        populateSelectors();
-        initUI();
+        // UI init
+        populateCity();
+        populateDays(document.getElementById("citySel").value);
 
-        const city = document.getElementById("citySel").value;
-        const day  = document.getElementById("daySel").value;
-        const v    = document.getElementById("varSel").value;
+        // wire selectors
+        document.getElementById("citySel").addEventListener("change", ()=>{
+          populateDays(document.getElementById("citySel").value);
+          refresh();
+        });
+        document.getElementById("varSel").addEventListener("change", refresh);
+        document.getElementById("daySel").addEventListener("change", refresh);
+        document.getElementById("modeSingle").addEventListener("click", ()=>setMode("single"));
+        document.getElementById("modeMulti").addEventListener("click", ()=>setMode("multi"));
+        document.getElementById("toggleMetric").addEventListener("click",(e)=>{
+          metricMode = metricMode==="mae" ? "rmse" : metricMode==="rmse" ? "bias" : "mae";
+          e.target.textContent = "Metric: " + (metricMode==="mae"?"Average Miss (MAE)":metricMode==="rmse"?"Big Miss (RMSE)":"Lean (Bias)");
+          refresh();
+        });
+        document.getElementById("share").addEventListener("click", shareLink);
 
-        setMeta(city, day);
-        rebuildChart(city, day, v);
-        updateKpis(city, day, v);
-
-        document.getElementById("foot").textContent =
-          "Tip: Switch Day to “All days” to compare curves across the entire history window.";
+        // restore state (URL wins over localStorage)
+        if (!restoreFromUrl()) restoreState();
+        refresh();
       },
       error: (err)=>{
         document.getElementById("foot").textContent = "Failed to load CSV: " + err;
