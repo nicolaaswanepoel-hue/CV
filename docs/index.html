@@ -28,8 +28,10 @@
     h1{margin:0 0 6px;font-size:30px;letter-spacing:.3px}
     .sub{margin:0 0 16px;color:var(--muted)}
     .badges img{vertical-align:middle;margin-right:6px}
+
+    /* CHANGED: grid is now only for the two charts, equal columns on wide screens */
     .grid{display:grid;grid-template-columns:1fr;gap:16px;margin-top:14px}
-    @media (min-width:1000px){ .grid{grid-template-columns:2fr 1fr} }
+    @media (min-width:1000px){ .grid{grid-template-columns:1fr 1fr} }
 
     .card{background:linear-gradient(180deg,#111836,#0b1230);border:1px solid var(--border);border-radius:18px;padding:18px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
     .controls{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
@@ -72,15 +74,12 @@
     </p>
 
     <div class="badges">
-      <!-- CI status -->
       <a href="https://github.com/nicolaaswanepoel-hue/CV/actions/workflows/ci-python.yml" rel="noopener">
         <img alt="CI — Python" src="https://github.com/nicolaaswanepoel-hue/CV/actions/workflows/ci-python.yml/badge.svg?branch=main">
       </a>
-      <!-- Repo freshness -->
       <a href="https://github.com/nicolaaswanepoel-hue/CV" rel="noopener">
         <img alt="Last commit" src="https://img.shields.io/github/last-commit/nicolaaswanepoel-hue/CV?label=last%20commit">
       </a>
-      <!-- Tech stack -->
       <img alt="Airflow" src="https://img.shields.io/badge/Airflow-2.9-blue">
       <img alt="Python" src="https://img.shields.io/badge/Python-3.11-blue">
       <img alt="Postgres" src="https://img.shields.io/badge/Postgres-16-blue">
@@ -89,9 +88,10 @@
       <img alt="Open Meteo API" src="https://img.shields.io/badge/Open--Meteo-API-7aa2ff">
     </div>
 
-    <div class="grid">
-      <!-- Left: Chart -->
-      <div class="card">
+    <!-- CHANGED: This grid now holds the TWO CHART CARDS side-by-side -->
+    <div class="grid" id="chartsGrid">
+      <!-- Left: Hourly error chart -->
+      <div class="card" id="cardHourly">
         <div class="controls">
           <label>City:
             <select id="citySel"></select>
@@ -151,36 +151,8 @@
         <footer id="foot">Loading…</footer>
       </div>
 
-      <!-- Right: About + Stack -->
-      <div class="card">
-        <h3 style="margin-top:0">What am I looking at?</h3>
-        <p class="mini">
-          For the selected city and day(s), we compare hourly forecasts to what actually happened.
-          The line shows error vs. “hours ahead” (how far in advance the forecast was made).
-          Toggle “All days” to see multiple days overlaid (click chips to isolate).
-        </p>
-        <h3 style="margin-bottom:6px">How it works</h3>
-        <p class="mini">API → Docker → Airflow → Postgres → CSV → GitHub Pages</p>
-        <div class="stack" aria-label="architecture">
-          <div class="node">Open-Meteo API</div><div class="arrow">→</div>
-          <div class="node">Docker</div><div class="arrow">→</div>
-          <div class="node">Airflow</div><div class="arrow">→</div>
-          <div class="node">Postgres</div><div class="arrow">→</div>
-          <div class="node">CSV export</div><div class="arrow">→</div>
-          <div class="node">GitHub Pages</div>
-        </div>
-        <p class="mini" style="margin-top:10px">
-          Batch DAGs compute MAE, RMSE and Bias by horizon and export
-          <code>docs/data/metrics_history.csv</code> (and <code>metrics_latest.csv</code>) which power this page.
-        </p>
-        <p class="mini">Source: <a href="https://github.com/nicolaaswanepoel-hue/CV" rel="noopener">github.com/nicolaaswanepoel-hue/CV</a></p>
-        <p class="mini">Data generated: <span id="updated">—</span></p>
-      </div>
-    </div>
-  </div>
-
-        <!-- NEW: Daily Forecast vs Observed -->
-      <div class="card">
+      <!-- Right: Daily forecast vs observed chart -->
+      <div class="card" id="cardDaily">
         <h3 style="margin-top:0">Forecast vs Observed — Daily</h3>
         <p class="mini">
           For the selected city and variable, we aggregate hourly data into a daily value
@@ -202,7 +174,34 @@
         <canvas id="chartDaily" aria-label="Forecast vs Observed across days"></canvas>
         <div class="mini">Tip: Hover to see exact daily values. Forecast uses the latest non-negative horizon per hour.</div>
       </div>
+    </div>
 
+    <!-- CHANGED: About/Stack moved BELOW the charts -->
+    <div class="card" id="aboutCard" style="margin-top:16px">
+      <h3 style="margin-top:0">What am I looking at?</h3>
+      <p class="mini">
+        For the selected city and day(s), we compare hourly forecasts to what actually happened.
+        The line shows error vs. “hours ahead” (how far in advance the forecast was made).
+        Toggle “All days” to see multiple days overlaid (click chips to isolate).
+      </p>
+      <h3 style="margin-bottom:6px">How it works</h3>
+      <p class="mini">API → Docker → Airflow → Postgres → CSV → GitHub Pages</p>
+      <div class="stack" aria-label="architecture">
+        <div class="node">Open-Meteo API</div><div class="arrow">→</div>
+        <div class="node">Docker</div><div class="arrow">→</div>
+        <div class="node">Airflow</div><div class="arrow">→</div>
+        <div class="node">Postgres</div><div class="arrow">→</div>
+        <div class="node">CSV export</div><div class="arrow">→</div>
+        <div class="node">GitHub Pages</div>
+      </div>
+      <p class="mini" style="margin-top:10px">
+        Batch DAGs compute MAE, RMSE and Bias by horizon and export
+        <code>docs/data/metrics_history.csv</code> (and <code>metrics_latest.csv</code>) which power this page.
+      </p>
+      <p class="mini">Source: <a href="https://github.com/nicolaaswanepoel-hue/CV" rel="noopener">github.com/nicolaaswanepoel-hue/CV</a></p>
+      <p class="mini">Data generated: <span id="updated">—</span></p>
+    </div>
+  </div>
 
   <script>
     // ---------- data & helpers ----------
@@ -216,7 +215,6 @@
     const csvDailyUrl = "./data/forecast_vs_obs.csv?v=" + Date.now();
     let rowsDaily = [];
     let chartDaily; // Chart.js instance for daily compare
-
 
     const unitsByVar = {
       temperature_2m: "°C",
@@ -270,7 +268,7 @@
       return g;
     }
 
-        // Map var -> units (reusing same keys as main chart)
+    // Map var -> units (reusing same keys as main chart)
     const unitsByVarDaily = unitsByVar;
 
     // List unique cities / days from daily dataset
@@ -287,11 +285,11 @@
         o.value = o.textContent = c;
         cs.appendChild(o);
       }
-      // try to mirror the main city if possible
+      // mirror the main city if possible
       const mainCity = document.getElementById("citySel")?.value;
       if (mainCity && getCitiesDaily().includes(mainCity)) cs.value = mainCity;
 
-      // keep varDaily as selected, default to temperature
+      // default variable
       if (!vs.value) vs.value = "temperature_2m";
     }
 
@@ -314,20 +312,8 @@
         data: {
           labels,
           datasets: [
-            {
-              label: "Forecast",
-              data: forecast,
-              borderWidth: 2,
-              tension: .25,
-              pointRadius: 2
-            },
-            {
-              label: "Observed",
-              data: observed,
-              borderWidth: 2,
-              tension: .25,
-              pointRadius: 2
-            }
+            { label: "Forecast", data: forecast, borderWidth: 2, tension: .25, pointRadius: 2 },
+            { label: "Observed", data: observed, borderWidth: 2, tension: .25, pointRadius: 2 }
           ]
         },
         options: {
@@ -335,11 +321,7 @@
           interaction: { mode: "nearest", intersect: false },
           plugins: {
             legend: { labels: { color: "#cfe1ff" } },
-            tooltip: {
-              callbacks: {
-                label: (c)=> `${c.dataset.label}: ${numFmt(c.parsed.y)} ${unit}`
-              }
-            }
+            tooltip: { callbacks: { label: (c)=> `${c.dataset.label}: ${numFmt(c.parsed.y)} ${unit}` } }
           },
           scales: {
             x: { title: { display: true, text: "Day" }, grid: { color: "rgba(255,255,255,.05)" } },
@@ -348,7 +330,6 @@
         }
       });
     }
-
 
     // --- color helpers for multi-day mode ---
     const PALETTE = [
@@ -639,11 +620,14 @@
           resetDayColors();
           populateDays(document.getElementById("citySel").value);
           refresh();
+          // keep daily city in sync if possible
+          const c = document.getElementById("citySel").value;
+          const cs = document.getElementById("cityDaily");
+          if (cs && [...cs.options].some(o=>o.value===c)) {
+            cs.value = c; rebuildDailyChart();
+          }
         });
-        document.getElementById("varSel").addEventListener("change", ()=>{
-          resetDayColors();
-          refresh();
-        });
+        document.getElementById("varSel").addEventListener("change", ()=>{ resetDayColors(); refresh(); });
         document.getElementById("daySel").addEventListener("change", refresh);
         document.getElementById("modeSingle").addEventListener("click", ()=>{ resetDayColors(); setMode("single"); });
         document.getElementById("modeMulti").addEventListener("click",  ()=>{ resetDayColors(); setMode("multi");  });
@@ -664,7 +648,7 @@
       }
     });
 
-        // ---------- load daily compare CSV ----------
+    // ---------- load daily compare CSV ----------
     Papa.parse(csvDailyUrl, {
       download: true, header: true, dynamicTyping: true,
       complete: (res)=>{
@@ -677,25 +661,11 @@
         // event wiring
         document.getElementById("cityDaily").addEventListener("change", rebuildDailyChart);
         document.getElementById("varDaily").addEventListener("change", rebuildDailyChart);
-
-        // keep cityDaily in sync when user changes the main city
-        const citySel = document.getElementById("citySel");
-        if (citySel){
-          citySel.addEventListener("change", ()=>{
-            const c = citySel.value;
-            const cs = document.getElementById("cityDaily");
-            if ([...cs.options].some(o=>o.value===c)) {
-              cs.value = c;
-              rebuildDailyChart();
-            }
-          });
-        }
       },
       error: (err)=>{
         console.error("Failed to load forecast_vs_obs.csv:", err);
       }
     });
-
   </script>
 </body>
 </html>
