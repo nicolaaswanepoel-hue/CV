@@ -29,6 +29,7 @@ jobs:
           import sys, types, math
 
           def stub_module(name, attrs=None):
+              """Registers a fake module in sys.modules so imports don't fail."""
               m = types.ModuleType(name)
               for k, v in (attrs or {}).items():
                   setattr(m, k, v)
@@ -60,7 +61,7 @@ jobs:
           stub_module("airflow.operators")
           stub_module("airflow.operators.python", {"PythonOperator": _PythonOperator})
 
-          # ---- Light stubs for heavy deps used at import time ----
+          # ---- Light stubs for heavy deps ----
           # pandas
           class _DF: pass
           def _read_sql(*a, **k): return _DF()
@@ -69,8 +70,10 @@ jobs:
               "read_sql": _read_sql,
               "to_datetime": lambda *a, **k: None
           })
+
           # numpy
           stub_module("numpy", {"mean": lambda x: 0.0, "sqrt": math.sqrt, "abs": abs})
+
           # psycopg2
           class _Conn:
               autocommit = False
@@ -85,7 +88,18 @@ jobs:
           def _connect(**kwargs): return _Conn()
           stub_module("psycopg2", {"connect": _connect})
 
-          print("Stubbed airflow.DAG, PythonOperator, and heavy deps.")
+          # ---- requests ----
+          class _Resp:
+              def __init__(self, text="", status_code=200):
+                  self.text = text
+                  self.status_code = status_code
+              def json(self): return {}
+
+          def _get(*a, **k): return _Resp()
+          def _post(*a, **k): return _Resp()
+          stub_module("requests", {"get": _get, "post": _post, "Response": _Resp})
+
+          print("Stubbed airflow.DAG, PythonOperator, requests, and heavy deps.")
           PY
 
       - name: Create import_check.py
