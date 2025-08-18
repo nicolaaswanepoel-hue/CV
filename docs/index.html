@@ -18,8 +18,7 @@
   <style>
     :root{
       --bg:#0c1224; --ink:#e9edff; --muted:#9aa7ff; --card:#121a39; --border:#263169; --accent:#7aa2ff;
-      --glow: 0 0 25px rgba(122,162,255,.35), 0 0 50px rgba(122,162,255,.18);
-      --chartH: 440px;
+      --glow: 0 0 25px rgba(122,162,255,.28), 0 0 50px rgba(122,162,255,.16);
     }
     *{box-sizing:border-box}
     html,body{margin:0;font:16px/1.5 ui-sans-serif,system-ui,Segoe UI,Roboto,Ubuntu;background:radial-gradient(1200px 600px at 20% -10%, #192553 0%, transparent 60%), var(--bg);color:var(--ink)}
@@ -34,7 +33,13 @@
     .pair{display:grid;grid-template-columns:1fr;gap:16px;margin-top:16px}
     @media (min-width:1024px){ .pair{grid-template-columns:2fr 1fr} }
 
-    .card{background:linear-gradient(180deg,#111836,#0b1230);border:1px solid var(--border);border-radius:18px;padding:18px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+    .card{
+      background:linear-gradient(180deg,#111836,#0b1230);
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:18px;
+      box-shadow:0 10px 30px rgba(0,0,0,.35), var(--glow); /* glow on card, not canvas */
+    }
     .controls{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
     .controls label{display:flex;gap:8px;align-items:center}
     select,button{background:#0e1532;color:var(--ink);border:1px solid var(--border);border-radius:12px;padding:9px 11px}
@@ -53,10 +58,14 @@
     .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 8px}
     .linkbtn{font-size:14px}
 
-    /* 🖼️ Crisp canvas setup */
-    .chartBox{position:relative;width:100%;height:var(--chartH)}
-    @media (min-width:1280px){ .chartBox{height:460px} }
-    canvas{display:block;width:100%;height:100%;filter:drop-shadow(var(--glow))}
+    /* 🖼️ Crisp canvas setup: let Chart.js control height via aspectRatio */
+    .chartBox{ position:relative; width:100%; } /* no fixed height */
+    canvas{
+      display:block;
+      width:100%;
+      height:auto;               /* no CSS stretching */
+      /* no filter on canvas to avoid soft edges */
+    }
 
     .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
     .chip{padding:6px 10px;border:1px solid var(--border);border-radius:999px;background:#0e1532;color:var(--ink);cursor:pointer;font-size:13px;opacity:.85}
@@ -293,6 +302,29 @@
       return dayColorCache.get(day);
     }
 
+    // ---------- crispness controls ----------
+    const mqDesktop = window.matchMedia("(min-width:1024px)");
+    const getAR = () => (mqDesktop.matches ? 1.8 : 1.35); // width / height
+    const getDPR = () => Math.min(2, window.devicePixelRatio || 1); // cap for perf + sharpness
+
+    function applyGlobalDPR(){
+      // Set global default so any future chart uses the current DPR
+      Chart.defaults.devicePixelRatio = getDPR();
+    }
+    function applyChartSizing(){
+      if (chart){
+        chart.options.aspectRatio = getAR();
+        chart.resize();
+      }
+      if (chartDaily){
+        chartDaily.options.aspectRatio = getAR();
+        chartDaily.resize();
+      }
+    }
+    applyGlobalDPR();
+    mqDesktop.addEventListener?.("change", ()=>{ applyGlobalDPR(); applyChartSizing(); });
+    window.addEventListener("resize", ()=>{ applyGlobalDPR(); applyChartSizing(); });
+
     // ---------- charts ----------
     let chart;
 
@@ -316,18 +348,27 @@
         }]},
         options:{
           responsive:true,
-          maintainAspectRatio:false,               // 👈 crisp fit to .chartBox
+          maintainAspectRatio:true,
+          aspectRatio:getAR(),
           interaction:{mode:"nearest",intersect:false},
           plugins:{
             legend:{display:false},
             tooltip:{callbacks:{label:(c)=>`${metricLabel()}: ${numFmt(c.parsed.y)} ${unitsByVar[varName]||""}`}}
           },
           scales:{
-            x:{title:{display:true,text:"Hours ahead (forecast lead time)"}, grid:{color:"rgba(255,255,255,.05)"}, ticks:{autoSkip:true,maxTicksLimit:12}},
-            y:{title:{display:true,text:`Error (${unitsByVar[varName]||"units"})`}, grid:{color:"rgba(255,255,255,.06)"}}
+            x:{
+              title:{display:true,text:"Hours ahead (forecast lead time)"},
+              grid:{color:"rgba(255,255,255,.05)"},
+              ticks:{autoSkip:true,maxTicksLimit: mqDesktop.matches ? 12 : 8}
+            },
+            y:{
+              title:{display:true,text:`Error (${unitsByVar[varName]||"units"})`},
+              grid:{color:"rgba(255,255,255,.06)"}
+            }
           }
         }
       });
+      applyChartSizing();
     }
 
     function rebuildChartMulti(city, days, varName){
@@ -347,18 +388,27 @@
         data:{ labels, datasets },
         options:{
           responsive:true,
-          maintainAspectRatio:false,               // 👈 crisp fit to .chartBox
+          maintainAspectRatio:true,
+          aspectRatio:getAR(),
           interaction:{mode:"nearest",intersect:false},
           plugins:{
-            legend:{display:true, labels:{color:"#cfe1ff"}},
+            legend:{display:true, labels:{color:"#cfe1ff", font:{size:12}}},
             tooltip:{callbacks:{label:(c)=>`${c.dataset.label} — ${metricLabel()}: ${numFmt(c.parsed.y)} ${unitsByVar[varName]||""}`}}
           },
           scales:{
-            x:{title:{display:true,text:"Hours ahead"}, grid:{color:"rgba(255,255,255,.05)"}, ticks:{autoSkip:true,maxTicksLimit:12}},
-            y:{title:{display:true,text:`Error (${unitsByVar[varName]||"units"})`}, grid:{color:"rgba(255,255,255,.06)"}}
+            x:{
+              title:{display:true,text:"Hours ahead"},
+              grid:{color:"rgba(255,255,255,.05)"},
+              ticks:{autoSkip:true,maxTicksLimit: mqDesktop.matches ? 12 : 8}
+            },
+            y:{
+              title:{display:true,text:`Error (${unitsByVar[varName]||"units"})`},
+              grid:{color:"rgba(255,255,255,.06)"}
+            }
           }
         }
       });
+      applyChartSizing();
     }
 
     // Daily chart
@@ -385,10 +435,11 @@
         },
         options: {
           responsive:true,
-          maintainAspectRatio:false,               // 👈 crisp fit to .chartBox
+          maintainAspectRatio:true,
+          aspectRatio:getAR(),
           interaction:{mode:"nearest", intersect:false},
           plugins:{
-            legend:{labels:{color:"#cfe1ff"}},
+            legend:{labels:{color:"#cfe1ff", font:{size:12}}},
             tooltip:{callbacks:{label:(c)=> `${c.dataset.label}: ${numFmt(c.parsed.y)} ${unit}`}}
           },
           scales:{
@@ -397,6 +448,7 @@
           }
         }
       });
+      applyChartSizing();
     }
 
     // ---------- UI wiring ----------
