@@ -12,16 +12,18 @@ permissions:
 jobs:
   dag-checks:
     runs-on: ubuntu-latest
+
     steps:
       - run: echo "CI - Airflow DAGs starting on ${{ github.ref }} (event=${{ github.event_name }})"
+
       - uses: actions/checkout@v4
 
-      # Use the local composite action (no tag for local paths)
+      # Local composite action (no tag for local paths)
       - uses: ./.github/actions/setup-python-tooling
         with:
           python-version: "3.11"
 
-      # Detect DAG directory (supports either `dags/` or `airflow/dags/`)
+      # Detect DAG directory (supports either dags/ or airflow/dags/)
       - name: Detect DAG directory
         id: detect
         shell: bash
@@ -38,19 +40,21 @@ jobs:
         if: ${{ steps.detect.outputs.dir == '' }}
         run: echo "No DAG directory found; skipping Airflow DAG checks."
 
-      # Only run checks if DAG dir exists
       - name: Set DAG_DIR env
         if: ${{ steps.detect.outputs.dir != '' }}
         run: echo "DAG_DIR=${{ steps.detect.outputs.dir }}" >> "$GITHUB_ENV"
 
+      # ---- Stub imports without heredoc (write to a file, then run) ----
       - name: Stub imports (airflow/pandas/numpy/psycopg2)
         if: ${{ steps.detect.outputs.dir != '' }}
+        shell: bash
         run: |
-          python - <<'PY'
+          cat > _stub_imports.py <<'PY'
 import sys, types, math
 def stub_module(name, attrs=None):
     m = types.ModuleType(name)
-    for k,v in (attrs or {}).items(): setattr(m,k,v)
+    for k, v in (attrs or {}).items():
+        setattr(m, k, v)
     sys.modules[name] = m
 # airflow tree (minimal)
 stub_module("airflow")
@@ -60,7 +64,7 @@ stub_module("airflow.operators.python")
 # pandas (basic)
 class _DF: pass
 def _read_sql(*a, **k): return _DF()
-stub_module("pandas", {"DataFrame": _DF, "read_sql": _read_sql, "to_datetime": lambda *a,**k: None})
+stub_module("pandas", {"DataFrame": _DF, "read_sql": _read_sql, "to_datetime": lambda *a, **k: None})
 # numpy (basic)
 stub_module("numpy", {"mean": lambda x: 0.0, "sqrt": math.sqrt, "abs": abs})
 # psycopg2 (connect shim)
@@ -68,7 +72,7 @@ class _Conn:
     autocommit = False
     def cursor(self):
         class C:
-            def execute(self,*a,**k): pass
+            def execute(self, *a, **k): pass
             def fetchone(self): return [None]
             def close(self): pass
         return C()
@@ -78,6 +82,7 @@ def _connect(**kwargs): return _Conn()
 stub_module("psycopg2", {"connect": _connect})
 print("Stubbed airflow/pandas/numpy/psycopg2 for import checks.")
 PY
+          python _stub_imports.py
 
       - name: Ruff (style)
         if: ${{ steps.detect.outputs.dir != '' }}
@@ -102,6 +107,7 @@ PY
 
       - name: Import check (importlib)
         if: ${{ steps.detect.outputs.dir != '' }}
+        shell: bash
         run: |
           python - <<'PY'
 import importlib, pathlib, os
