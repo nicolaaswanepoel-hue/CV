@@ -16,24 +16,31 @@
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
   <style>
-    :root {
+    :root{
       --bg:#0c1224; --ink:#e9edff; --muted:#9aa7ff; --card:#121a39; --border:#263169; --accent:#7aa2ff;
-      --glow: 0 0 25px rgba(122,162,255,.35), 0 0 50px rgba(122,162,255,.18);
+      --glow: 0 0 25px rgba(122,162,255,.28), 0 0 50px rgba(122,162,255,.16);
     }
     *{box-sizing:border-box}
-    html,body{margin:0;font:16px/1.5 ui-sans-serif,system-ui,Segoe UI,Roboto,Ubuntu;background:radial-gradient(1200px 600px at 20% -10%, #192553 0%, transparent 60%), var(--bg);color:var(--ink)}
+    html,body{margin:0;font:16px/1.5 ui-sans-serif,system-ui,Segoe UI,Roboto,Ubuntu;background:
+      radial-gradient(1200px 600px at 20% -10%, #192553 0%, transparent 60%), var(--bg);color:var(--ink)}
     a{color:#cfe1ff;text-decoration:none}
     a:hover{text-decoration:underline}
-    .wrap{max-width:1100px;margin:42px auto;padding:0 16px}
+    .wrap{max-width:1180px;margin:42px auto;padding:0 16px}
     h1{margin:0 0 6px;font-size:30px;letter-spacing:.3px}
     .sub{margin:0 0 16px;color:var(--muted)}
     .badges img{vertical-align:middle;margin-right:6px}
 
-    /* CHANGED: grid is now only for the two charts, equal columns on wide screens */
-    .grid{display:grid;grid-template-columns:1fr;gap:16px;margin-top:14px}
-    @media (min-width:1000px){ .grid{grid-template-columns:1fr 1fr} }
+    /* LAYOUT: Hourly + About on top row; Daily full width below */
+    .grid{display:grid;gap:16px;margin-top:16px;grid-template-columns:1fr}
+    @media (min-width:1024px){ .grid{grid-template-columns:2fr 1fr} }
 
-    .card{background:linear-gradient(180deg,#111836,#0b1230);border:1px solid var(--border);border-radius:18px;padding:18px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+    .card{
+      background:linear-gradient(180deg,#111836,#0b1230);
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:18px;
+      box-shadow:0 10px 30px rgba(0,0,0,.35), var(--glow); /* glow on card, not canvas */
+    }
     .controls{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
     .controls label{display:flex;gap:8px;align-items:center}
     select,button{background:#0e1532;color:var(--ink);border:1px solid var(--border);border-radius:12px;padding:9px 11px}
@@ -51,25 +58,28 @@
 
     .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 8px}
     .linkbtn{font-size:14px}
-    .linkbtn svg{vertical-align:middle;margin-right:6px}
 
-    canvas{width:100%!important;height:440px!important;filter:drop-shadow(var(--glow))}
+    /* CRISP CHARTS: container sets true size; canvas fills it (no CSS scaling mismatch) */
+    .chartBox{position:relative;width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden}
+    @media (max-width:1023.98px){ .chartBox{aspect-ratio:4/3} }
+    canvas{display:block;width:100%;height:100%} /* let Chart.js draw at native pixels */
+
     .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
     .chip{padding:6px 10px;border:1px solid var(--border);border-radius:999px;background:#0e1532;color:var(--ink);cursor:pointer;font-size:13px;opacity:.85}
     .chip.active{opacity:1;background:#172250}
     .mini{font-size:12px;color:#9aa7ff;margin-top:6px}
     footer{color:var(--muted);margin-top:14px;font-size:12px}
 
-    .stack{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:flex-start}
+    .stack{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
     .node{background:#0e1532;border:1px solid var(--border);border-radius:12px;padding:8px 12px;white-space:nowrap}
-    .arrow{color:var(--muted);font-size:20px}
+    .arrow{color:#9aa7ff;font-size:20px}
   </style>
 </head>
 <body>
   <div class="wrap">
     <h1>Forecast Accuracy</h1>
     <p class="sub">
-      “How far off were we?” — Pick a city and explore error by forecast lead time. Toggle single day vs. all-days overlay.
+      “How far off were we?” — Explore hourly error vs. lead time, plus a clean daily Forecast vs Observed comparison.
       <span id="meta"></span>
     </p>
 
@@ -88,9 +98,9 @@
       <img alt="Open Meteo API" src="https://img.shields.io/badge/Open--Meteo-API-7aa2ff">
     </div>
 
-    <!-- CHANGED: This grid now holds the TWO CHART CARDS side-by-side -->
-    <div class="grid" id="chartsGrid">
-      <!-- Left: Hourly error chart -->
+    <!-- Top row: Hourly (left) + About (right) -->
+    <div class="grid">
+      <!-- Hourly card -->
       <div class="card" id="cardHourly">
         <div class="controls">
           <label>City:
@@ -103,12 +113,10 @@
               <option value="wind_speed_10m">Wind speed (m/s)</option>
             </select>
           </label>
-
           <div class="seg" role="tablist" aria-label="View mode">
             <button id="modeSingle" class="active" aria-selected="true">Single day</button>
             <button id="modeMulti" aria-selected="false">All days</button>
           </div>
-
           <button id="toggleMetric">Metric: Average Miss (MAE)</button>
         </div>
 
@@ -117,7 +125,6 @@
             <select id="daySel"></select>
           </label>
         </div>
-
         <div class="controls" id="multiControls" style="display:none">
           <div class="mini">Days (click to toggle):</div>
           <div id="dayChips" class="chips"></div>
@@ -147,59 +154,57 @@
           <button id="share" class="linkbtn">🔗 Copy share link</button>
         </div>
 
-        <canvas id="chart" aria-label="Accuracy across hours"></canvas>
+        <div class="chartBox"><canvas id="chart" aria-label="Accuracy across hours"></canvas></div>
         <footer id="foot">Loading…</footer>
       </div>
 
-      <!-- Right: Daily forecast vs observed chart -->
-      <div class="card" id="cardDaily">
-        <h3 style="margin-top:0">Forecast vs Observed — Daily</h3>
+      <!-- About card -->
+      <div class="card" id="aboutCard">
+        <h3 style="margin:0 0 6px">What am I looking at?</h3>
         <p class="mini">
-          For the selected city and variable, we aggregate hourly data into a daily value
-          (mean for temperature & wind, sum for precipitation) and plot Forecast vs Observed across days.
+          For the selected city and day(s), we compare hourly forecasts to what actually happened.
+          The line shows error vs. “hours ahead” (how far in advance the forecast was made).
+          Toggle “All days” to see multiple days overlaid (click chips to isolate).
         </p>
-        <div class="controls">
-          <label>City:
-            <select id="cityDaily"></select>
-          </label>
-          <label>Variable:
-            <select id="varDaily">
-              <option value="temperature_2m">Temperature (°C)</option>
-              <option value="precipitation">Precipitation (mm)</option>
-              <option value="wind_speed_10m">Wind speed (m/s)</option>
-            </select>
-          </label>
-          <a class="linkbtn" id="btnCompareCsv" href="./data/forecast_vs_obs.csv" download>⬇️ Download compare</a>
+        <h4 style="margin:10px 0 6px;font-size:14px;color:#cfe1ff">Data flow</h4>
+        <div class="stack" aria-label="architecture">
+          <div class="node">Open-Meteo API</div><div class="arrow">→</div>
+          <div class="node">Docker</div><div class="arrow">→</div>
+          <div class="node">Airflow</div><div class="arrow">→</div>
+          <div class="node">Postgres</div><div class="arrow">→</div>
+          <div class="node">CSV export</div><div class="arrow">→</div>
+          <div class="node">GitHub Pages</div>
         </div>
-        <canvas id="chartDaily" aria-label="Forecast vs Observed across days"></canvas>
-        <div class="mini">Tip: Hover to see exact daily values. Forecast uses the latest non-negative horizon per hour.</div>
+        <p class="mini" style="margin-top:10px">
+          Batch DAGs compute MAE, RMSE and Bias by horizon and export
+          <code>docs/data/metrics_history.csv</code> (and <code>metrics_latest.csv</code>) which power this page.
+        </p>
+        <p class="mini">Source: <a href="https://github.com/nicolaaswanepoel-hue/CV" rel="noopener">github.com/nicolaaswanepoel-hue/CV</a></p>
+        <p class="mini">Data generated: <span id="updated">—</span></p>
       </div>
     </div>
 
-    <!-- CHANGED: About/Stack moved BELOW the charts -->
-    <div class="card" id="aboutCard" style="margin-top:16px">
-      <h3 style="margin-top:0">What am I looking at?</h3>
+    <!-- BELOW the About: Daily chart full width -->
+    <div class="card" id="cardDaily" style="margin-top:16px">
+      <h3 style="margin-top:0">Forecast vs Observed — Daily</h3>
       <p class="mini">
-        For the selected city and day(s), we compare hourly forecasts to what actually happened.
-        The line shows error vs. “hours ahead” (how far in advance the forecast was made).
-        Toggle “All days” to see multiple days overlaid (click chips to isolate).
+        Hourly forecasts are aggregated per day (mean for temperature & wind, sum for precipitation), then compared to observed.
       </p>
-      <h3 style="margin-bottom:6px">How it works</h3>
-      <p class="mini">API → Docker → Airflow → Postgres → CSV → GitHub Pages</p>
-      <div class="stack" aria-label="architecture">
-        <div class="node">Open-Meteo API</div><div class="arrow">→</div>
-        <div class="node">Docker</div><div class="arrow">→</div>
-        <div class="node">Airflow</div><div class="arrow">→</div>
-        <div class="node">Postgres</div><div class="arrow">→</div>
-        <div class="node">CSV export</div><div class="arrow">→</div>
-        <div class="node">GitHub Pages</div>
+      <div class="controls">
+        <label>City:
+          <select id="cityDaily"></select>
+        </label>
+        <label>Variable:
+          <select id="varDaily">
+            <option value="temperature_2m">Temperature (°C)</option>
+            <option value="precipitation">Precipitation (mm)</option>
+            <option value="wind_speed_10m">Wind speed (m/s)</option>
+          </select>
+        </label>
+        <a class="linkbtn" id="btnCompareCsv" href="./data/forecast_vs_obs.csv" download>⬇️ Download compare</a>
       </div>
-      <p class="mini" style="margin-top:10px">
-        Batch DAGs compute MAE, RMSE and Bias by horizon and export
-        <code>docs/data/metrics_history.csv</code> (and <code>metrics_latest.csv</code>) which power this page.
-      </p>
-      <p class="mini">Source: <a href="https://github.com/nicolaaswanepoel-hue/CV" rel="noopener">github.com/nicolaaswanepoel-hue/CV</a></p>
-      <p class="mini">Data generated: <span id="updated">—</span></p>
+      <div class="chartBox"><canvas id="chartDaily" aria-label="Forecast vs Observed across days"></canvas></div>
+      <div class="mini">Tip: Hover to see daily values. Forecast uses the latest non-negative horizon per hour.</div>
     </div>
   </div>
 
@@ -207,9 +212,9 @@
     // ---------- data & helpers ----------
     const csvUrl = "./data/metrics_history.csv?v=" + Date.now(); // cache-bust
     let rows = [];
-    let metricMode = "mae"; // mae -> rmse -> bias
-    let viewMode = "single"; // "single" | "multi"
-    let selectedDays = [];   // for multi mode
+    let metricMode = "mae";   // mae -> rmse -> bias
+    let viewMode = "single";  // "single" | "multi"
+    let selectedDays = [];    // for multi mode
 
     // ---------- daily compare config ----------
     const csvDailyUrl = "./data/forecast_vs_obs.csv?v=" + Date.now();
@@ -228,8 +233,6 @@
 
     const numFmt = (v, d=2) => (v==null || Number.isNaN(+v)) ? "—" : (+v).toFixed(d);
     const uniq = arr => [...new Set(arr)];
-    const by = k => (a,b)=> (a[k] < b[k] ? -1 : a[k] > b[k] ? 1 : 0);
-
     const getCities = ()=> uniq(rows.map(r=>r.city)).sort((a,b)=>a.localeCompare(b));
     const getDaysForCity = (c)=> uniq(rows.filter(r=>r.city===c).map(r=>r.day)).sort((a,b)=>a.localeCompare(b));
     const horizonsFor = (c,d,v)=> uniq(rows.filter(r=>r.city===c && r.var===v && (d? r.day===d : true)).map(r=>+r.horizon_hours)).sort((a,b)=>a-b);
@@ -268,69 +271,6 @@
       return g;
     }
 
-    // Map var -> units (reusing same keys as main chart)
-    const unitsByVarDaily = unitsByVar;
-
-    // List unique cities / days from daily dataset
-    const getCitiesDaily = ()=> [...new Set(rowsDaily.map(r=>r.city))].sort((a,b)=>a.localeCompare(b));
-    const getDaysForCityDaily = (c)=> [...new Set(rowsDaily.filter(r=>r.city===c).map(r=>r.day))].sort();
-
-    function populateDailySelectors(){
-      const cs = document.getElementById("cityDaily");
-      const vs = document.getElementById("varDaily");
-      // city list
-      cs.innerHTML = "";
-      for (const c of getCitiesDaily()){
-        const o = document.createElement("option");
-        o.value = o.textContent = c;
-        cs.appendChild(o);
-      }
-      // mirror the main city if possible
-      const mainCity = document.getElementById("citySel")?.value;
-      if (mainCity && getCitiesDaily().includes(mainCity)) cs.value = mainCity;
-
-      // default variable
-      if (!vs.value) vs.value = "temperature_2m";
-    }
-
-    function rebuildDailyChart(){
-      if (!rowsDaily.length) return;
-      const city = document.getElementById("cityDaily").value;
-      const v = document.getElementById("varDaily").value;
-      const unit = unitsByVarDaily[v] || "";
-
-      // filter and sort by day
-      const data = rowsDaily.filter(r=>r.city===city && r.var===v).sort((a,b)=> a.day.localeCompare(b.day));
-      const labels = data.map(r=>r.day);
-      const forecast = data.map(r=> +r.forecast_value);
-      const observed = data.map(r=> +r.observed_value);
-
-      if (chartDaily) chartDaily.destroy();
-      const ctx = document.getElementById("chartDaily").getContext("2d");
-      chartDaily = new Chart(ctx, {
-        type: "line",
-        data: {
-          labels,
-          datasets: [
-            { label: "Forecast", data: forecast, borderWidth: 2, tension: .25, pointRadius: 2 },
-            { label: "Observed", data: observed, borderWidth: 2, tension: .25, pointRadius: 2 }
-          ]
-        },
-        options: {
-          responsive: true,
-          interaction: { mode: "nearest", intersect: false },
-          plugins: {
-            legend: { labels: { color: "#cfe1ff" } },
-            tooltip: { callbacks: { label: (c)=> `${c.dataset.label}: ${numFmt(c.parsed.y)} ${unit}` } }
-          },
-          scales: {
-            x: { title: { display: true, text: "Day" }, grid: { color: "rgba(255,255,255,.05)" } },
-            y: { title: { display: true, text: unit }, grid: { color: "rgba(255,255,255,.06)" } }
-          }
-        }
-      });
-    }
-
     // --- color helpers for multi-day mode ---
     const PALETTE = [
       "#4e79a7","#f28e2b","#e15759","#76b7b2","#59a14f",
@@ -339,37 +279,28 @@
     ];
     let paletteIndex = 0;
     const dayColorCache = new Map();
-
     function rgba(hex, a=1){
       const x = hex.replace("#",""); const r=parseInt(x.substr(0,2),16), g=parseInt(x.substr(2,2),16), b=parseInt(x.substr(4,2),16);
       return `rgba(${r},${g},${b},${a})`;
     }
-    function shufflePalette(){
-      for (let i=PALETTE.length-1;i>0;i--){
-        const j=Math.floor(Math.random()*(i+1)); [PALETTE[i],PALETTE[j]]=[PALETTE[j],PALETTE[i]];
-      }
-    }
-    function resetDayColors(){
-      dayColorCache.clear();
-      paletteIndex = 0;
-      shufflePalette();
-    }
+    function shufflePalette(){ for (let i=PALETTE.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [PALETTE[i],PALETTE[j]]=[PALETTE[j],PALETTE[i]]; } }
+    function resetDayColors(){ dayColorCache.clear(); paletteIndex = 0; shufflePalette(); }
     function getDayColor(day){
-      if (!dayColorCache.has(day)){
-        const color = PALETTE[paletteIndex % PALETTE.length];
-        paletteIndex++;
-        dayColorCache.set(day, color);
-      }
+      if (!dayColorCache.has(day)){ const color = PALETTE[paletteIndex % PALETTE.length]; paletteIndex++; dayColorCache.set(day, color); }
       return dayColorCache.get(day);
     }
 
-    // ---------- chart ----------
-    let chart;
-    function rebuildChartSingle(city, day, varName){
-      const data = rows
-        .filter(r=>r.city===city && r.day===day && r.var===varName)
-        .sort((a,b)=>(+a.horizon_hours)-(+b.horizon_hours));
+    // ---------- crispness controls ----------
+    const mqDesktop = window.matchMedia("(min-width:1024px)");
+    const getDPR = () => Math.min(2.25, window.devicePixelRatio || 1); // balanced sharpness vs perf
+    Chart.defaults.devicePixelRatio = getDPR();
+    window.addEventListener("resize", ()=>{ Chart.defaults.devicePixelRatio = getDPR(); if(chart) chart.resize(); if(chartDaily) chartDaily.resize(); });
 
+    // ---------- charts ----------
+    let chart, chartDaily;
+
+    function rebuildChartSingle(city, day, varName){
+      const data = rows.filter(r=>r.city===city && r.day===day && r.var===varName).sort((a,b)=>(+a.horizon_hours)-(+b.horizon_hours));
       const labels = data.map(r=>r.horizon_hours);
       const series = data.map(r=>+r[metricMode]);
 
@@ -388,42 +319,35 @@
         }]},
         options:{
           responsive:true,
+          maintainAspectRatio:false,        // fill .chartBox
           interaction:{mode:"nearest",intersect:false},
           plugins:{
             legend:{display:false},
             tooltip:{callbacks:{label:(c)=>`${metricLabel()}: ${numFmt(c.parsed.y)} ${unitsByVar[varName]||""}`}}
           },
           scales:{
-            x:{title:{display:true,text:"Hours ahead (forecast lead time)"}, grid:{color:"rgba(255,255,255,.05)"}},
-            y:{title:{display:true,text:`Error (${unitsByVar[varName]||"units"})`}, grid:{color:"rgba(255,255,255,.06)"}}
+            x:{
+              title:{display:true,text:"Hours ahead (forecast lead time)"},
+              grid:{color:"rgba(255,255,255,.05)"},
+              ticks:{autoSkip:true,maxTicksLimit: mqDesktop.matches ? 12 : 8, maxRotation:0, minRotation:0}
+            },
+            y:{
+              title:{display:true,text:`Error (${unitsByVar[varName]||"units"})`},
+              grid:{color:"rgba(255,255,255,.06)"}
+            }
           }
         }
       });
     }
 
     function rebuildChartMulti(city, days, varName){
-      const allH = horizonsFor(city, null, varName);
-      const labels = allH;
-
+      const labels = horizonsFor(city, null, varName);
       const datasets = days.map((d)=> {
         const perDay = rows.filter(r=>r.city===city && r.day===d && r.var===varName);
         const map = new Map(perDay.map(r=>[+r.horizon_hours, +r[metricMode]]));
         const serie = labels.map(h=> map.has(h) ? map.get(h) : null);
-
         const hex = getDayColor(d);
-        return {
-          label: d,
-          data: serie,
-          borderColor: hex,
-          backgroundColor: rgba(hex, 0.18),
-          pointBackgroundColor: hex,
-          pointBorderColor: hex,
-          pointRadius: 2,
-          tension: .25,
-          borderWidth: 2,
-          spanGaps: true,
-          fill: false
-        };
+        return { label:d, data:serie, borderColor:hex, backgroundColor:rgba(hex, .18), pointBackgroundColor:hex, pointBorderColor:hex, pointRadius:2, tension:.25, borderWidth:2, spanGaps:true, fill:false };
       });
 
       if (chart) chart.destroy();
@@ -433,44 +357,95 @@
         data:{ labels, datasets },
         options:{
           responsive:true,
+          maintainAspectRatio:false,
           interaction:{mode:"nearest",intersect:false},
           plugins:{
-            legend:{display:true, labels:{color:"#cfe1ff"}},
+            legend:{display:true, labels:{color:"#cfe1ff", font:{size:12}}},
             tooltip:{callbacks:{label:(c)=>`${c.dataset.label} — ${metricLabel()}: ${numFmt(c.parsed.y)} ${unitsByVar[varName]||""}`}}
           },
           scales:{
-            x:{title:{display:true,text:"Hours ahead"}, grid:{color:"rgba(255,255,255,.05)"}},
-            y:{title:{display:true,text:`Error (${unitsByVar[varName]||"units"})`}, grid:{color:"rgba(255,255,255,.06)"}}
+            x:{
+              title:{display:true,text:"Hours ahead"},
+              grid:{color:"rgba(255,255,255,.05)"},
+              ticks:{autoSkip:true,maxTicksLimit: mqDesktop.matches ? 12 : 8, maxRotation:0, minRotation:0}
+            },
+            y:{
+              title:{display:true,text:`Error (${unitsByVar[varName]||"units"})`},
+              grid:{color:"rgba(255,255,255,.06)"}
+            }
+          }
+        }
+      });
+    }
+
+    function rebuildDailyChart(){
+      if (!rowsDaily.length) return;
+      const city = document.getElementById("cityDaily").value;
+      const v = document.getElementById("varDaily").value;
+      const unit = unitsByVar[v] || "";
+      const data = rowsDaily.filter(r=>r.city===city && r.var===v).sort((a,b)=> a.day.localeCompare(b.day));
+      const labels = data.map(r=>r.day);
+      const forecast = data.map(r=> +r.forecast_value);
+      const observed = data.map(r=> +r.observed_value);
+
+      if (chartDaily) chartDaily.destroy();
+      const ctx = document.getElementById("chartDaily").getContext("2d");
+      chartDaily = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels,
+          datasets: [
+            { label:"Forecast", data:forecast, borderWidth:2, tension:.25, pointRadius:2 },
+            { label:"Observed", data:observed, borderWidth:2, tension:.25, pointRadius:2 }
+          ]
+        },
+        options: {
+          responsive:true,
+          maintainAspectRatio:false,       // fill .chartBox
+          interaction:{mode:"nearest", intersect:false},
+          plugins:{
+            legend:{labels:{color:"#cfe1ff", font:{size:12}}},
+            tooltip:{callbacks:{label:(c)=> `${c.dataset.label}: ${numFmt(c.parsed.y)} ${unit}`}}
+          },
+          scales:{
+            x:{
+              title:{display:true,text:"Day"},
+              grid:{color:"rgba(255,255,255,.05)"},
+              ticks:{autoSkip:true,maxTicksLimit: mqDesktop.matches ? 10 : 7, maxRotation:0, minRotation:0}
+            },
+            y:{title:{display:true,text:unit}, grid:{color:"rgba(255,255,255,.06)"}}
           }
         }
       });
     }
 
     // ---------- UI wiring ----------
+    function getCitiesDaily(){ return [...new Set(rowsDaily.map(r=>r.city))].sort((a,b)=>a.localeCompare(b)); }
+    function populateDailySelectors(){
+      const cs = document.getElementById("cityDaily");
+      const vs = document.getElementById("varDaily");
+      cs.innerHTML = "";
+      for (const c of getCitiesDaily()){ const o = document.createElement("option"); o.value=o.textContent=c; cs.appendChild(o); }
+      const mainCity = document.getElementById("citySel")?.value;
+      if (mainCity && getCitiesDaily().includes(mainCity)) cs.value = mainCity;
+      if (!vs.value) vs.value = "temperature_2m";
+    }
+
     function populateCity(){
       const citySel = document.getElementById("citySel");
       citySel.innerHTML = "";
-      for (const c of getCities()){
-        const o = document.createElement("option");
-        o.value = o.textContent = c;
-        citySel.appendChild(o);
-      }
+      for (const c of getCities()){ const o = document.createElement("option"); o.value=o.textContent=c; citySel.appendChild(o); }
     }
-
     function populateDays(city){
       const daySel = document.getElementById("daySel");
       const days = getDaysForCity(city);
       daySel.innerHTML = "";
-      for (const d of days){
-        const o = document.createElement("option");
-        o.value = o.textContent = d;
-        daySel.appendChild(o);
-      }
+      for (const d of days){ const o = document.createElement("option"); o.value=o.textContent=d; daySel.appendChild(o); }
       if (days.length) daySel.value = days[days.length-1];
-      // chips for multi
+
       const chips = document.getElementById("dayChips");
       chips.innerHTML = "";
-      const defaultMulti = days.slice(-7); // last 7 by default
+      const defaultMulti = days.slice(-7);
       selectedDays = selectedDays.length ? selectedDays : defaultMulti;
       days.forEach(d=>{
         const el = document.createElement("div");
@@ -480,7 +455,7 @@
           if (selectedDays.includes(d)) selectedDays = selectedDays.filter(x=>x!==d);
           else selectedDays = [...selectedDays, d];
           el.classList.toggle("active");
-          refresh(); // keep colors stable on chip toggle
+          refresh();
         };
         chips.appendChild(el);
       });
@@ -504,7 +479,6 @@
         document.getElementById("delta-bias").innerHTML = "";
       } else {
         s = summarize(city, dayOrDays, varName);
-        // prev day delta
         const days = getDaysForCity(city);
         const idx = days.indexOf(dayOrDays);
         const prevDay = idx>0 ? days[idx-1] : null;
@@ -526,11 +500,8 @@
       params.set("var", variable);
       params.set("metric", metricMode);
       params.set("mode", viewMode);
-      if (viewMode==="single"){
-        params.set("day", document.getElementById("daySel").value);
-      } else {
-        if (selectedDays.length) params.set("days", selectedDays.join(","));
-      }
+      if (viewMode==="single"){ params.set("day", document.getElementById("daySel").value); }
+      else { if (selectedDays.length) params.set("days", selectedDays.join(",")); }
       const url = `${location.origin}${location.pathname}?${params.toString()}`;
       navigator.clipboard?.writeText(url);
       const foot = document.getElementById("foot");
@@ -553,9 +524,7 @@
       if (mode==="multi" || mode==="single") viewMode = mode;
 
       populateDays(document.getElementById("citySel").value);
-      if (day && getDaysForCity(document.getElementById("citySel").value).includes(day)) {
-        document.getElementById("daySel").value = day;
-      }
+      if (day && getDaysForCity(document.getElementById("citySel").value).includes(day)) { document.getElementById("daySel").value = day; }
       if (days.length) selectedDays = days;
       setMode(viewMode);
     }
@@ -609,23 +578,18 @@
     Papa.parse(csvUrl, {
       download:true, header:true, dynamicTyping:true,
       complete: (res)=>{
-        rows = res.data.filter(r=>r.day && r.city && r.var); // basic guard
-
-        // UI init
+        rows = res.data.filter(r=>r.day && r.city && r.var);
         populateCity();
         populateDays(document.getElementById("citySel").value);
 
-        // wire selectors
         document.getElementById("citySel").addEventListener("change", ()=>{
           resetDayColors();
           populateDays(document.getElementById("citySel").value);
           refresh();
-          // keep daily city in sync if possible
+          // sync daily city if possible
           const c = document.getElementById("citySel").value;
           const cs = document.getElementById("cityDaily");
-          if (cs && [...cs.options].some(o=>o.value===c)) {
-            cs.value = c; rebuildDailyChart();
-          }
+          if (cs && [...cs.options].some(o=>o.value===c)) { cs.value = c; rebuildDailyChart(); }
         });
         document.getElementById("varSel").addEventListener("change", ()=>{ resetDayColors(); refresh(); });
         document.getElementById("daySel").addEventListener("change", refresh);
@@ -638,33 +602,24 @@
         });
         document.getElementById("share").addEventListener("click", shareLink);
 
-        // restore state (URL wins over localStorage)
         resetDayColors();
         if (!restoreFromUrl()) restoreState();
         refresh();
       },
-      error: (err)=>{
-        document.getElementById("foot").textContent = "Failed to load CSV: " + err;
-      }
+      error: (err)=>{ document.getElementById("foot").textContent = "Failed to load CSV: " + err; }
     });
 
     // ---------- load daily compare CSV ----------
     Papa.parse(csvDailyUrl, {
-      download: true, header: true, dynamicTyping: true,
+      download:true, header:true, dynamicTyping:true,
       complete: (res)=>{
-        // Expect columns: generated_at, day, city, var, forecast_value, observed_value
         rowsDaily = res.data.filter(r=> r.day && r.city && r.var);
-
         populateDailySelectors();
         rebuildDailyChart();
-
-        // event wiring
         document.getElementById("cityDaily").addEventListener("change", rebuildDailyChart);
         document.getElementById("varDaily").addEventListener("change", rebuildDailyChart);
       },
-      error: (err)=>{
-        console.error("Failed to load forecast_vs_obs.csv:", err);
-      }
+      error: (err)=>{ console.error("Failed to load forecast_vs_obs.csv:", err); }
     });
   </script>
 </body>
