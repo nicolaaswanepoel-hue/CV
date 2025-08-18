@@ -94,16 +94,32 @@ jobs:
           # Ensure stubs are loaded in THIS process
           import stub_imports  # noqa: F401
 
-          import importlib, pathlib, os, sys
+          import importlib.util, pathlib, os, sys
+
           dag_dir = os.environ.get("DAG_DIR")
           if not dag_dir:
-              print("DAG_DIR not set", file=sys.stderr); sys.exit(1)
-          for p in pathlib.Path(dag_dir).rglob("*.py"):
-              mod = p.with_suffix("").as_posix().replace("/", ".")
-              print("Importing", mod)
-              importlib.import_module(mod)
-          print("All DAG modules import successfully (with stubs).")
+              print("DAG_DIR not set", file=sys.stderr)
+              sys.exit(1)
+
+          files = sorted(str(p) for p in pathlib.Path(dag_dir).rglob("*.py"))
+          if not files:
+              print("No DAG .py files - nothing to import.")
+              sys.exit(0)
+
+          for idx, path in enumerate(files, start=1):
+              mod_name = f"_dagmodule_{idx}"
+              print(f"Loading {path} as {mod_name}")
+              spec = importlib.util.spec_from_file_location(mod_name, path)
+              if spec is None or spec.loader is None:
+                  print(f"Failed to create spec for {path}", file=sys.stderr)
+                  sys.exit(1)
+              mod = importlib.util.module_from_spec(spec)
+              sys.modules[mod_name] = mod
+              spec.loader.exec_module(mod)
+
+          print("All DAG files imported successfully (via file paths, with stubs).")
           PY
+
 
       - name: Create py_compile_check.py
         run: |
