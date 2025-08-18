@@ -16,7 +16,8 @@ jobs:
       - run: echo "CI - Airflow DAGs starting on ${{ github.ref }} (event=${{ github.event_name }})"
       - uses: actions/checkout@v4
 
-      - uses: .github/actions/setup-python-tooling@v0
+      # Use the local composite action (no tag for local paths)
+      - uses: ./.github/actions/setup-python-tooling
         with:
           python-version: "3.11"
 
@@ -34,16 +35,16 @@ jobs:
           fi
 
       - name: No DAG directory - skip
-        if: "${{ steps.detect.outputs.dir == '' }}"
+        if: ${{ steps.detect.outputs.dir == '' }}
         run: echo "No DAG directory found; skipping Airflow DAG checks."
 
       # Only run checks if DAG dir exists
       - name: Set DAG_DIR env
-        if: "${{ steps.detect.outputs.dir != '' }}"
+        if: ${{ steps.detect.outputs.dir != '' }}
         run: echo "DAG_DIR=${{ steps.detect.outputs.dir }}" >> "$GITHUB_ENV"
 
       - name: Stub imports (airflow/pandas/numpy/psycopg2)
-        if: "${{ steps.detect.outputs.dir != '' }}"
+        if: ${{ steps.detect.outputs.dir != '' }}
         run: |
           python - <<'PY'
 import sys, types, math
@@ -79,11 +80,11 @@ print("Stubbed airflow/pandas/numpy/psycopg2 for import checks.")
 PY
 
       - name: Ruff (style)
-        if: "${{ steps.detect.outputs.dir != '' }}"
+        if: ${{ steps.detect.outputs.dir != '' }}
         run: ruff check "$DAG_DIR"
 
       - name: Syntax check (py_compile)
-        if: "${{ steps.detect.outputs.dir != '' }}"
+        if: ${{ steps.detect.outputs.dir != '' }}
         shell: bash
         run: |
           files=$(git ls-files "$DAG_DIR/**/*.py")
@@ -100,9 +101,18 @@ print("py_compile OK on", len(files), "files")
 PY
 
       - name: Import check (importlib)
-        if: "${{ steps.detect.outputs.dir != '' }}"
+        if: ${{ steps.detect.outputs.dir != '' }}
         run: |
           python - <<'PY'
 import importlib, pathlib, os
 dag_dir = os.environ["DAG_DIR"]
-for p in
+for p in pathlib.Path(dag_dir).rglob("*.py"):
+    mod = p.with_suffix("").as_posix().replace("/", ".")
+    print("Importing", mod)
+    importlib.import_module(mod)
+print("All DAG modules import successfully (with stubs).")
+PY
+
+      - name: Mypy (types)
+        if: ${{ steps.detect.outputs.dir != '' }}
+        run: mypy --ignore-missing-imports "$DAG_DIR"
