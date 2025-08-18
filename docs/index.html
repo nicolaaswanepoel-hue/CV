@@ -29,7 +29,7 @@
     .sub{margin:0 0 16px;color:var(--muted)}
     .badges img{vertical-align:middle;margin-right:6px}
 
-    /* Section layout: each pair = chart card + about card */
+    /* Each pair = chart card + about card */
     .pair{display:grid;grid-template-columns:1fr;gap:16px;margin-top:16px}
     @media (min-width:1024px){ .pair{grid-template-columns:2fr 1fr} }
 
@@ -38,7 +38,7 @@
       border:1px solid var(--border);
       border-radius:18px;
       padding:18px;
-      box-shadow:0 10px 30px rgba(0,0,0,.35), var(--glow); /* glow on card, not canvas */
+      box-shadow:0 10px 30px rgba(0,0,0,.35), var(--glow);
     }
     .controls{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
     .controls label{display:flex;gap:8px;align-items:center}
@@ -58,13 +58,21 @@
     .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 8px}
     .linkbtn{font-size:14px}
 
-    /* 🖼️ Crisp canvas setup: let Chart.js control height via aspectRatio */
-    .chartBox{ position:relative; width:100%; } /* no fixed height */
+    /* ✨ Crisp charts: fixed aspect ratio on container, canvas fills container */
+    .chartBox{
+      position:relative;
+      width:100%;
+      aspect-ratio: 16 / 9;            /* desktop default */
+      overflow:hidden;
+      border-radius:12px;
+    }
+    @media (max-width:1023.98px){
+      .chartBox{ aspect-ratio: 4 / 3; } /* a bit taller on mobile */
+    }
     canvas{
       display:block;
       width:100%;
-      height:auto;               /* no CSS stretching */
-      /* no filter on canvas to avoid soft edges */
+      height:100%;                      /* fill the aspect-ratio box */
     }
 
     .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
@@ -75,7 +83,7 @@
 
     .stack{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
     .node{background:#0e1532;border:1px solid var(--border);border-radius:12px;padding:8px 12px;white-space:nowrap}
-    .arrow{color:var(--muted);font-size:20px}
+    .arrow{color:#9aa7ff;font-size:20px}
   </style>
 </head>
 <body>
@@ -243,8 +251,6 @@
 
     const numFmt = (v, d=2) => (v==null || Number.isNaN(+v)) ? "—" : (+v).toFixed(d);
     const uniq = arr => [...new Set(arr)];
-    const by = k => (a,b)=> (a[k] < b[k] ? -1 : a[k] > b[k] ? 1 : 0);
-
     const getCities = ()=> uniq(rows.map(r=>r.city)).sort((a,b)=>a.localeCompare(b));
     const getDaysForCity = (c)=> uniq(rows.filter(r=>r.city===c).map(r=>r.day)).sort((a,b)=>a.localeCompare(b));
     const horizonsFor = (c,d,v)=> uniq(rows.filter(r=>r.city===c && r.var===v && (d? r.day===d : true)).map(r=>+r.horizon_hours)).sort((a,b)=>a-b);
@@ -304,29 +310,12 @@
 
     // ---------- crispness controls ----------
     const mqDesktop = window.matchMedia("(min-width:1024px)");
-    const getAR = () => (mqDesktop.matches ? 1.8 : 1.35); // width / height
-    const getDPR = () => Math.min(2, window.devicePixelRatio || 1); // cap for perf + sharpness
-
-    function applyGlobalDPR(){
-      // Set global default so any future chart uses the current DPR
-      Chart.defaults.devicePixelRatio = getDPR();
-    }
-    function applyChartSizing(){
-      if (chart){
-        chart.options.aspectRatio = getAR();
-        chart.resize();
-      }
-      if (chartDaily){
-        chartDaily.options.aspectRatio = getAR();
-        chartDaily.resize();
-      }
-    }
-    applyGlobalDPR();
-    mqDesktop.addEventListener?.("change", ()=>{ applyGlobalDPR(); applyChartSizing(); });
-    window.addEventListener("resize", ()=>{ applyGlobalDPR(); applyChartSizing(); });
+    const getDPR = () => Math.min(2, window.devicePixelRatio || 1); // cap for clarity without heavy GPU
+    Chart.defaults.devicePixelRatio = getDPR();
+    window.addEventListener("resize", ()=>{ Chart.defaults.devicePixelRatio = getDPR(); if(chart) chart.resize(); if(chartDaily) chartDaily.resize(); });
 
     // ---------- charts ----------
-    let chart;
+    let chart, chartDaily;
 
     function rebuildChartSingle(city, day, varName){
       const data = rows.filter(r=>r.city===city && r.day===day && r.var===varName).sort((a,b)=>(+a.horizon_hours)-(+b.horizon_hours));
@@ -348,8 +337,7 @@
         }]},
         options:{
           responsive:true,
-          maintainAspectRatio:true,
-          aspectRatio:getAR(),
+          maintainAspectRatio:false,        // fill .chartBox (which dictates aspect ratio)
           interaction:{mode:"nearest",intersect:false},
           plugins:{
             legend:{display:false},
@@ -359,7 +347,7 @@
             x:{
               title:{display:true,text:"Hours ahead (forecast lead time)"},
               grid:{color:"rgba(255,255,255,.05)"},
-              ticks:{autoSkip:true,maxTicksLimit: mqDesktop.matches ? 12 : 8}
+              ticks:{autoSkip:true,maxTicksLimit: mqDesktop.matches ? 12 : 8, maxRotation:0, minRotation:0}
             },
             y:{
               title:{display:true,text:`Error (${unitsByVar[varName]||"units"})`},
@@ -368,7 +356,6 @@
           }
         }
       });
-      applyChartSizing();
     }
 
     function rebuildChartMulti(city, days, varName){
@@ -388,8 +375,7 @@
         data:{ labels, datasets },
         options:{
           responsive:true,
-          maintainAspectRatio:true,
-          aspectRatio:getAR(),
+          maintainAspectRatio:false,
           interaction:{mode:"nearest",intersect:false},
           plugins:{
             legend:{display:true, labels:{color:"#cfe1ff", font:{size:12}}},
@@ -399,7 +385,7 @@
             x:{
               title:{display:true,text:"Hours ahead"},
               grid:{color:"rgba(255,255,255,.05)"},
-              ticks:{autoSkip:true,maxTicksLimit: mqDesktop.matches ? 12 : 8}
+              ticks:{autoSkip:true,maxTicksLimit: mqDesktop.matches ? 12 : 8, maxRotation:0, minRotation:0}
             },
             y:{
               title:{display:true,text:`Error (${unitsByVar[varName]||"units"})`},
@@ -408,10 +394,8 @@
           }
         }
       });
-      applyChartSizing();
     }
 
-    // Daily chart
     function rebuildDailyChart(){
       if (!rowsDaily.length) return;
       const city = document.getElementById("cityDaily").value;
@@ -435,20 +419,22 @@
         },
         options: {
           responsive:true,
-          maintainAspectRatio:true,
-          aspectRatio:getAR(),
+          maintainAspectRatio:false,       // fill .chartBox ratio
           interaction:{mode:"nearest", intersect:false},
           plugins:{
             legend:{labels:{color:"#cfe1ff", font:{size:12}}},
             tooltip:{callbacks:{label:(c)=> `${c.dataset.label}: ${numFmt(c.parsed.y)} ${unit}`}}
           },
           scales:{
-            x:{title:{display:true,text:"Day"}, grid:{color:"rgba(255,255,255,.05)"}},
+            x:{
+              title:{display:true,text:"Day"},
+              grid:{color:"rgba(255,255,255,.05)"},
+              ticks:{autoSkip:true,maxTicksLimit: mqDesktop.matches ? 10 : 7, maxRotation:0, minRotation:0}
+            },
             y:{title:{display:true,text:unit}, grid:{color:"rgba(255,255,255,.06)"}}
           }
         }
       });
-      applyChartSizing();
     }
 
     // ---------- UI wiring ----------
