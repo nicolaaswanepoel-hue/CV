@@ -33,7 +33,6 @@
     /* Layout: two columns on desktop */
     .grid{display:grid;gap:16px;margin-top:16px;grid-template-columns:1fr}
     @media (min-width:1024px){ .grid{grid-template-columns:2fr 1fr} }
-    @media (min-width:1024px){ .rightcol{grid-column:2} }  /* force into right column */
 
     .card{
       background:linear-gradient(180deg,#111836,#0b1230);
@@ -108,9 +107,9 @@
       <img alt="GitHub Pages" src="https://img.shields.io/badge/GitHub%20Pages-live-brightgreen">
       <img alt="Open Meteo API" src="https://img.shields.io/badge/Open--Meteo-API-7aa2ff">
 
-      <!-- dbt endpoint badges (served from docs/data/*.json) -->
-      <img alt="CI — dbt build" src="https://img.shields.io/badge/DBT-1.10-blue">
-      <img alt="dbt tests" src="https://img.shields.io/badge/DBT-✓-blue">
+      <!-- simple dbt shields -->
+      <img alt="dbt" src="https://img.shields.io/badge/dbt-1.10-blue">
+      <img alt="dbt tests" src="https://img.shields.io/badge/dbt%20tests-✓-blue">
       <a class="linkbtn" href="./dbt/index.html" rel="noopener">dbt docs ➜</a>
     </div>
 
@@ -175,7 +174,7 @@
       </div>
 
       <!-- About card (right) -->
-      <div class="card rightcol" id="aboutCard">
+      <div class="card" id="aboutCard">
         <h3 style="margin:0 0 6px">What am I looking at?</h3>
         <p class="mini">
           For the selected city and day(s), we compare hourly forecasts to what actually happened.
@@ -201,8 +200,8 @@
         <p class="mini">Data generated: <span id="updated">—</span></p>
       </div>
 
-      <!-- dbt status card (right) -->
-      <div class="card rightcol" id="dbtCard" aria-live="polite">
+      <!-- dbt status card (will now fall into the LEFT column under Hourly) -->
+      <div class="card" id="dbtCard" aria-live="polite">
         <h3 style="margin:0 0 6px">dbt status</h3>
         <p class="mini">Latest <code>dbt build</code> &amp; <code>source freshness</code> from the pipeline.</p>
         <div class="dbt-tiles">
@@ -263,7 +262,7 @@
     // ---------- daily compare config ----------
     const csvDailyUrl = "./data/forecast_vs_obs.csv?v=" + Date.now();
     let rowsDaily = [];
-    let chartDaily; // Chart.js instance for daily compare
+    let chart, chartDaily; // Chart.js instances
 
     const unitsByVar = {
       temperature_2m: "°C",
@@ -341,8 +340,6 @@
     window.addEventListener("resize", ()=>{ Chart.defaults.devicePixelRatio = getDPR(); if(chart) chart.resize(); if(chartDaily) chartDaily.resize(); });
 
     // ---------- charts ----------
-    let chart;
-
     function rebuildChartSingle(city, day, varName){
       const data = rows.filter(r=>r.city===city && r.day===day && r.var===varName).sort((a,b)=>(+a.horizon_hours)-(+b.horizon_hours));
       const labels = data.map(r=>r.horizon_hours);
@@ -658,10 +655,20 @@
       download:true, header:true, dynamicTyping:true,
       complete: (res)=>{
         rowsDaily = res.data.filter(r=> r.day && r.city && r.var);
-        populateDailySelectors();
+        // build selectors after we know options
+        const cityDaily = document.getElementById("cityDaily");
+        const varDaily  = document.getElementById("varDaily");
+        cityDaily.innerHTML = "";
+        for (const c of [...new Set(rowsDaily.map(r=>r.city))].sort((a,b)=>a.localeCompare(b))){
+          const o = document.createElement("option"); o.value=o.textContent=c; cityDaily.appendChild(o);
+        }
+        if (document.getElementById("citySel").value && [...cityDaily.options].some(o=>o.value===document.getElementById("citySel").value)){
+          cityDaily.value = document.getElementById("citySel").value;
+        }
+        if (!varDaily.value) varDaily.value = "temperature_2m";
         rebuildDailyChart();
-        document.getElementById("cityDaily").addEventListener("change", rebuildDailyChart);
-        document.getElementById("varDaily").addEventListener("change", rebuildDailyChart);
+        cityDaily.addEventListener("change", rebuildDailyChart);
+        varDaily.addEventListener("change", rebuildDailyChart);
       },
       error: (err)=>{ console.error("Failed to load forecast_vs_obs.csv:", err); }
     });
@@ -669,15 +676,20 @@
     // ---------- dbt status (run_results & freshness) ----------
     async function loadJson(url){
       try{
-        const res = await fetch(url + "?v=" + Date.now());
+        const res = await fetch(url + (url.includes("?") ? "&" : "?") + "v=" + Date.now());
         if(!res.ok) throw new Error(res.status + " " + res.statusText);
         return await res.json();
       }catch(e){
-        console.warn("Fetch failed:", url, e);
         return null;
       }
     }
-
+    async function firstJson(urls){
+      for (const u of urls){
+        const j = await loadJson(u);
+        if (j) return j;
+      }
+      return null;
+    }
     function setFreshnessPill(el, status){
       el.textContent = (status||"—").toUpperCase();
       el.classList.remove("pass","warn","error");
@@ -687,20 +699,29 @@
     }
 
     (async function hydrateDbt(){
-      const build = await loadJson("./data/dbt_build.json");
-      const fresh = await loadJson("./data/dbt_source.json");
+      const build = await firstJson([
+        "./data/dbt_build.json",
+        "./data/run_results.json",
+        "./dbt/run_results.json",
+        "./dbt/assets/run_results.json"
+      ]);
+      const fresh = await firstJson([
+        "./data/dbt_source.json",
+        "./data/sources.json",
+        "./dbt/sources.json",
+        "./dbt/assets/sources.json",
+        "./dbt/source_freshness.json"
+      ]);
 
-      // Defaults
       let modelsOk = 0, modelsTotal = 0;
       let testsPass = 0, testsTotal = 0;
       let runAt = "—";
 
       if (build){
-        // dbt run_results.json shape: metadata.generated_at, results[{unique_id, status}...]
         runAt = build?.metadata?.generated_at || build?.generated_at || "—";
         const results = Array.isArray(build.results) ? build.results : [];
         for (const r of results){
-          const id = r.unique_id || "";
+          const id = String(r.unique_id || "");
           const status = String(r.status || "").toLowerCase();
           if (id.startsWith("model.")){
             modelsTotal++;
@@ -711,12 +732,30 @@
           }
         }
       }
+
+      // Fallback: if totals are zero, try manifest to at least count how many exist.
+      if ((modelsTotal===0 || testsTotal===0)){
+        const manifest = await firstJson([
+          "./dbt/manifest.json",
+          "./data/manifest.json",
+          "./dbt/assets/manifest.json"
+        ]);
+        if (manifest && manifest.nodes){
+          const nodes = Object.values(manifest.nodes);
+          if (modelsTotal===0){
+            modelsTotal = nodes.filter(n => n.resource_type==="model").length;
+          }
+          if (testsTotal===0){
+            testsTotal = nodes.filter(n => n.resource_type==="test").length;
+          }
+        }
+      }
+
       document.getElementById("dbt-models").textContent = `${modelsOk} / ${modelsTotal}`;
       document.getElementById("dbt-tests").textContent  = `${testsPass} / ${testsTotal}`;
       document.getElementById("dbt-run-at").textContent = runAt;
 
       // Freshness
-      let overall = null;
       const order = { pass:0, warn:1, error:2 };
       if (fresh && Array.isArray(fresh.results)){
         const srcBits = [];
@@ -724,11 +763,12 @@
         for (const r of fresh.results){
           const st = String(r.status || "error").toLowerCase();
           if (order[st] > order[worst]) worst = st;
-          const srcName = (r?.unique_id || r?.source_name || r?.node?.name || "source").split(".").slice(-1)[0];
+          const srcName =
+            (r?.unique_id?.split(".").slice(-1)[0]) ||
+            r?.source_name || r?.node?.name || "source";
           srcBits.push(`<span class="pill ${st}">${srcName}: ${st}</span>`);
         }
-        overall = worst;
-        setFreshnessPill(document.getElementById("dbt-freshness-overall"), overall);
+        setFreshnessPill(document.getElementById("dbt-freshness-overall"), worst);
         document.getElementById("dbt-freshness-sources").innerHTML = srcBits.join(" ");
       } else {
         document.getElementById("dbt-freshness-overall").textContent = "—";
