@@ -91,6 +91,9 @@ jobs:
       - name: Create import_check.py
         run: |
           cat > import_check.py <<'PY'
+          # Ensure stubs are loaded in THIS process
+          import stub_imports  # noqa: F401
+
           import importlib, pathlib, os, sys
           dag_dir = os.environ.get("DAG_DIR")
           if not dag_dir:
@@ -140,9 +143,6 @@ jobs:
           # Expose to child processes in this step
           export DAG_DIR="$DAG_DIR"
 
-          # Stub imports so DAG modules can import without real deps
-          python stub_imports.py
-
           # Ruff (style) — install if your local action didn't
           if ! command -v ruff >/dev/null 2>&1; then
             pip install ruff
@@ -152,7 +152,7 @@ jobs:
           # Syntax check via py_compile
           python py_compile_check.py
 
-          # Import check
+          # Import check (stubs are imported inside import_check.py)
           python import_check.py
 
           # mypy (types) — install if your local action didn't
