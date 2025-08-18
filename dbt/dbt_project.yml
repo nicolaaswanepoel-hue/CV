@@ -6,3 +6,8 @@ profile: "weather_lab"
 models:
   weather_lab:
     +materialized: view
+    staging:
+      +schema: staging
+    marts:
+      +schema: mart
+      +materialized: table
