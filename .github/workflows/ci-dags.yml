@@ -27,23 +27,51 @@ jobs:
         run: |
           cat > stub_imports.py <<'PY'
           import sys, types, math
+
           def stub_module(name, attrs=None):
               m = types.ModuleType(name)
               for k, v in (attrs or {}).items():
                   setattr(m, k, v)
               sys.modules[name] = m
-          # airflow tree (minimal)
-          stub_module("airflow")
+              return m
+
+          # ---- Minimal Airflow stubs ----
+          class _DAG:
+              def __init__(self, dag_id, *args, **kwargs):
+                  self.dag_id = dag_id
+              def __enter__(self): return self
+              def __exit__(self, exc_type, exc, tb): return False
+
+          class _BaseOperator:
+              def __init__(self, task_id, *args, **kwargs):
+                  self.task_id = task_id
+              # support chaining a >> b >> c
+              def __rshift__(self, other): return other
+              def __lshift__(self, other): return other
+
+          class _PythonOperator(_BaseOperator):
+              def __init__(self, task_id, python_callable=None, *args, **kwargs):
+                  super().__init__(task_id, *args, **kwargs)
+                  self.python_callable = python_callable
+
+          # airflow root must expose DAG for `from airflow import DAG`
+          airflow_mod = stub_module("airflow", {"DAG": _DAG})
           stub_module("airflow.models")
           stub_module("airflow.operators")
-          stub_module("airflow.operators.python")
-          # pandas (basic)
+          stub_module("airflow.operators.python", {"PythonOperator": _PythonOperator})
+
+          # ---- Light stubs for heavy deps used at import time ----
+          # pandas
           class _DF: pass
           def _read_sql(*a, **k): return _DF()
-          stub_module("pandas", {"DataFrame": _DF, "read_sql": _read_sql, "to_datetime": lambda *a, **k: None})
-          # numpy (basic)
+          stub_module("pandas", {
+              "DataFrame": _DF,
+              "read_sql": _read_sql,
+              "to_datetime": lambda *a, **k: None
+          })
+          # numpy
           stub_module("numpy", {"mean": lambda x: 0.0, "sqrt": math.sqrt, "abs": abs})
-          # psycopg2 (connect shim)
+          # psycopg2
           class _Conn:
               autocommit = False
               def cursor(self):
@@ -56,7 +84,8 @@ jobs:
               def close(self): pass
           def _connect(**kwargs): return _Conn()
           stub_module("psycopg2", {"connect": _connect})
-          print("Stubbed airflow/pandas/numpy/psycopg2 for import checks.")
+
+          print("Stubbed airflow.DAG, PythonOperator, and heavy deps.")
           PY
 
       - name: Create import_check.py
@@ -65,8 +94,7 @@ jobs:
           import importlib, pathlib, os, sys
           dag_dir = os.environ.get("DAG_DIR")
           if not dag_dir:
-              print("DAG_DIR not set", file=sys.stderr)
-              sys.exit(1)
+              print("DAG_DIR not set", file=sys.stderr); sys.exit(1)
           for p in pathlib.Path(dag_dir).rglob("*.py"):
               mod = p.with_suffix("").as_posix().replace("/", ".")
               print("Importing", mod)
@@ -80,8 +108,7 @@ jobs:
           import py_compile, sys, pathlib, os
           dag_dir = os.environ.get("DAG_DIR")
           if not dag_dir:
-              print("DAG_DIR not set", file=sys.stderr)
-              sys.exit(1)
+              print("DAG_DIR not set", file=sys.stderr); sys.exit(1)
           files = [str(p) for p in pathlib.Path(dag_dir).rglob("*.py")]
           if not files:
               print("No DAG .py files - skipping syntax/import checks.")
@@ -110,7 +137,7 @@ jobs:
           fi
           echo "Using DAG_DIR=$DAG_DIR"
 
-          # Make DAG_DIR visible to child processes (Python)
+          # Expose to child processes in this step
           export DAG_DIR="$DAG_DIR"
 
           # Stub imports so DAG modules can import without real deps
