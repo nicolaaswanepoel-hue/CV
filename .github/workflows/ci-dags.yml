@@ -99,7 +99,16 @@ jobs:
           def _post(*a, **k): return _Resp()
           stub_module("requests", {"get": _get, "post": _post, "Response": _Resp})
 
-          print("Stubbed airflow.DAG, PythonOperator, requests, and heavy deps.")
+          # meteostat (Point, Hourly.fetch())
+          class _Point:
+              def __init__(self, *a, **k): pass
+          class _Hourly:
+              def __init__(self, *a, **k): pass
+              # DAGs typically call .fetch(start, end)
+              def fetch(self, *a, **k): return _DF()
+          stub_module("meteostat", {"Point": _Point, "Hourly": _Hourly})
+
+          print("Stubbed airflow.DAG, PythonOperator, requests, meteostat, and heavy deps.")
           PY
 
       - name: Create import_check.py
