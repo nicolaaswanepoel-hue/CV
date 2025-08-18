@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <title>Nico’s Weather Lab — Forecast Accuracy</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="description" content="Live snapshot of forecast accuracy by city and day. API → Docker → Airflow → Postgres → CSV → GitHub Pages." />
+  <meta name="description" content="Live snapshot of forecast accuracy by city and day. API → Docker → Airflow → Postgres → dbt → CSV → GitHub Pages." />
 
   <meta property="og:title" content="Forecast Accuracy — Nico’s Weather Lab">
   <meta property="og:description" content="How close were forecasts to reality? Explore errors by hour, across days and cities.">
@@ -30,9 +30,10 @@
     .sub{margin:0 0 16px;color:var(--muted)}
     .badges img{vertical-align:middle;margin-right:6px}
 
-    /* LAYOUT: Hourly + About (+ dbt status) on top row; Daily full width below */
+    /* Layout: two columns on desktop */
     .grid{display:grid;gap:16px;margin-top:16px;grid-template-columns:1fr}
     @media (min-width:1024px){ .grid{grid-template-columns:2fr 1fr} }
+    @media (min-width:1024px){ .rightcol{grid-column:2} }  /* force into right column */
 
     .card{
       background:linear-gradient(180deg,#111836,#0b1230);
@@ -64,7 +65,7 @@
     canvas{display:block;width:100%;height:100%}
 
     .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
-    .chip{padding:6px 10px;border:1px solid var(--border);border-radius:999px;background:#0e1532;color:var(--ink);cursor:pointer;font-size:13px;opacity:.85}
+    .chip{padding:6px 10px;border:1px solid var(--border);border-radius:999px;background:#0e1532;color:var(--ink);cursor:pointer}
     .chip.active{opacity:1;background:#172250}
     .mini{font-size:12px;color:#9aa7ff;margin-top:6px}
     footer{color:var(--muted);margin-top:14px;font-size:12px}
@@ -72,6 +73,16 @@
     .stack{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
     .node{background:#0e1532;border:1px solid var(--border);border-radius:12px;padding:8px 12px;white-space:nowrap}
     .arrow{color:#9aa7ff;font-size:20px}
+
+    /* DBT status tiles */
+    .dbt-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px}
+    .dbt-tile{background:#0e1532;border:1px solid var(--border);border-radius:14px;padding:12px}
+    .dbt-tile .label{color:#8fa0ff;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+    .dbt-tile .value{font-size:22px;margin-top:6px}
+    .pill{display:inline-block;padding:2px 8px;border:1px solid var(--border);border-radius:999px;margin-right:6px;font-size:12px}
+    .pill.pass{color:#7ef77e;border-color:#2e6f3a}
+    .pill.warn{color:#ffd166;border-color:#997a2e}
+    .pill.error{color:#ffa9a9;border-color:#7a2e2e}
   </style>
 </head>
 <body>
@@ -89,6 +100,7 @@
       <a href="https://github.com/nicolaaswanepoel-hue/CV" rel="noopener">
         <img alt="Last commit" src="https://img.shields.io/github/last-commit/nicolaaswanepoel-hue/CV?label=last%20commit">
       </a>
+
       <img alt="Airflow" src="https://img.shields.io/badge/Airflow-2.9-blue">
       <img alt="Python" src="https://img.shields.io/badge/Python-3.11-blue">
       <img alt="Postgres" src="https://img.shields.io/badge/Postgres-16-blue">
@@ -96,20 +108,17 @@
       <img alt="GitHub Pages" src="https://img.shields.io/badge/GitHub%20Pages-live-brightgreen">
       <img alt="Open Meteo API" src="https://img.shields.io/badge/Open--Meteo-API-7aa2ff">
 
-      <!-- dbt: build badge (if you add ci-dbt.yml), docs link, and dynamic test/freshness badges -->
-      <a href="https://github.com/nicolaaswanepoel-hue/CV/actions/workflows/ci-dbt.yml" rel="noopener">
-        <img alt="CI — dbt build" src="https://github.com/nicolaaswanepoel-hue/CV/actions/workflows/ci-dbt.yml/badge.svg?branch=main">
-      </a>
-      <a href="./dbt/index.html" rel="noopener">
-        <img alt="dbt docs" src="https://img.shields.io/badge/dbt%20docs-browse-ff694b">
-      </a>
-      <img alt="dbt tests" src="https://img.shields.io/endpoint?url=https://nicolaaswanepoel-hue.github.io/CV/badges/dbt-tests.json">
-      <img alt="dbt freshness" src="https://img.shields.io/endpoint?url=https://nicolaaswanepoel-hue.github.io/CV/badges/dbt-freshness.json">
+      <!-- dbt endpoint badges (served from docs/data/*.json) -->
+      <img alt="CI — dbt build"
+           src="https://img.shields.io/endpoint?url=https://nicolaaswanepoel-hue.github.io/CV/data/dbt_build_badge.json">
+      <img alt="dbt tests"
+           src="https://img.shields.io/endpoint?url=https://nicolaaswanepoel-hue.github.io/CV/data/dbt_tests_badge.json">
+      <a class="linkbtn" href="./dbt/index.html" rel="noopener">dbt docs ➜</a>
     </div>
 
-    <!-- Top row: Hourly (left) + About (right) -->
+    <!-- Two-column row -->
     <div class="grid">
-      <!-- Hourly card -->
+      <!-- Hourly card (left) -->
       <div class="card" id="cardHourly">
         <div class="controls">
           <label>City:
@@ -167,8 +176,8 @@
         <footer id="foot">Loading…</footer>
       </div>
 
-      <!-- About card -->
-      <div class="card" id="aboutCard">
+      <!-- About card (right) -->
+      <div class="card rightcol" id="aboutCard">
         <h3 style="margin:0 0 6px">What am I looking at?</h3>
         <p class="mini">
           For the selected city and day(s), we compare hourly forecasts to what actually happened.
@@ -181,39 +190,43 @@
           <div class="node">Docker</div><div class="arrow">→</div>
           <div class="node">Airflow</div><div class="arrow">→</div>
           <div class="node">Postgres</div><div class="arrow">→</div>
+          <div class="node">dbt</div><div class="arrow">→</div>
           <div class="node">CSV export</div><div class="arrow">→</div>
           <div class="node">GitHub Pages</div>
         </div>
         <p class="mini" style="margin-top:10px">
           Batch DAGs compute MAE, RMSE and Bias by horizon and export
           <code>docs/data/metrics_history.csv</code> (and <code>metrics_latest.csv</code>) which power this page.
+          dbt builds staging + marts, runs tests, and we publish dbt docs.
         </p>
         <p class="mini">Source: <a href="https://github.com/nicolaaswanepoel-hue/CV" rel="noopener">github.com/nicolaaswanepoel-hue/CV</a></p>
         <p class="mini">Data generated: <span id="updated">—</span></p>
       </div>
 
-      <!-- dbt status card -->
-      <div class="card" id="dbtCard">
+      <!-- dbt status card (right) -->
+      <div class="card rightcol" id="dbtCard" aria-live="polite">
         <h3 style="margin:0 0 6px">dbt status</h3>
-        <div class="mini">Latest <code>dbt build</code> &amp; <code>source freshness</code> from the pipeline.</div>
-
-        <div class="kpis" style="margin-top:10px">
-          <div class="kpi">
-            <div class="label">Models (ok / total)</div>
-            <div class="value"><span id="dbt-models">—</span></div>
+        <p class="mini">Latest <code>dbt build</code> &amp; <code>source freshness</code> from the pipeline.</p>
+        <div class="dbt-tiles">
+          <div class="dbt-tile">
+            <div class="label">MODELS (OK / TOTAL)</div>
+            <div class="value" id="dbt-models">—</div>
           </div>
-          <div class="kpi">
-            <div class="label">Tests (pass / total)</div>
-            <div class="value"><span id="dbt-tests">—</span></div>
+          <div class="dbt-tile">
+            <div class="label">TESTS (PASS / TOTAL)</div>
+            <div class="value" id="dbt-tests">—</div>
           </div>
-          <div class="kpi">
-            <div class="label">Docs</div>
+          <div class="dbt-tile">
+            <div class="label">DOCS</div>
             <div class="value"><a href="./dbt/index.html">Open ➜</a></div>
           </div>
         </div>
-
-        <div class="mini" id="dbt-run-meta" style="margin-top:6px">—</div>
-        <div class="mini" style="margin-top:8px"><b>Freshness</b>: <span id="dbt-freshness">Loading…</span></div>
+        <div class="mini" style="margin-top:10px">
+          Last run: <span id="dbt-run-at">—</span><br>
+          Freshness:
+          <span id="dbt-freshness-overall" class="pill">—</span>
+          <span id="dbt-freshness-sources" class="mini"></span>
+        </div>
       </div>
     </div>
 
@@ -330,7 +343,7 @@
     window.addEventListener("resize", ()=>{ Chart.defaults.devicePixelRatio = getDPR(); if(chart) chart.resize(); if(chartDaily) chartDaily.resize(); });
 
     // ---------- charts ----------
-    let chart;
+    let chart, chartDaily;
 
     function rebuildChartSingle(city, day, varName){
       const data = rows.filter(r=>r.city===city && r.day===day && r.var===varName).sort((a,b)=>(+a.horizon_hours)-(+b.horizon_hours));
@@ -655,52 +668,74 @@
       error: (err)=>{ console.error("Failed to load forecast_vs_obs.csv:", err); }
     });
 
-    // ---------- load dbt artifacts for status card ----------
-    async function loadDbtStatus(){
+    // ---------- dbt status (run_results & freshness) ----------
+    async function loadJson(url){
       try{
-        const rr = await fetch('./dbt/run_results.json', {cache:'no-store'}).then(r=>r.json());
-        const src = await fetch('./dbt/sources.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null);
-
-        const results = rr?.results ?? [];
-        const isTest  = r => (r.unique_id||'').startsWith('test.');
-        const isModel = r => (r.unique_id||'').startsWith('model.');
-
-        const modelsOk   = results.filter(r=>isModel(r) && r.status==='success').length;
-        const modelsTot  = results.filter(isModel).length;
-        const testsPass  = results.filter(r=>isTest(r)  && r.status==='pass').length;
-        const testsTot   = results.filter(isTest).length;
-
-        const elModels = document.getElementById('dbt-models');
-        const elTests  = document.getElementById('dbt-tests');
-        if (elModels) elModels.textContent = `${modelsOk} / ${modelsTot}`;
-        if (elTests)  elTests.textContent  = `${testsPass} / ${testsTot}`;
-
-        const gen = rr?.generated_at || rr?.metadata?.generated_at;
-        const meta = document.getElementById('dbt-run-meta');
-        if (meta) meta.textContent = gen ? `Last run: ${new Date(gen).toISOString().replace('T',' ').replace('Z',' UTC')}` : '—';
-
-        const freshEl = document.getElementById('dbt-freshness');
-        if (freshEl){
-          if (src && Array.isArray(src.sources)){
-            const items = src.sources.map(s=>{
-              const name = `${s.source_name}.${s.name}`;
-              const st = s.status || 'pass'; // 'pass'|'warn'|'error'
-              const icon = st==='error' ? '❌' : (st==='warn' ? '⚠️' : '✅');
-              const age  = s.max_loaded_at ? `max_loaded_at=${s.max_loaded_at}` : '';
-              return `${icon} ${name} ${age}`;
-            });
-            freshEl.innerHTML = items.join(' &nbsp;•&nbsp; ');
-          } else {
-            freshEl.textContent = '—';
-          }
-        }
+        const res = await fetch(url + "?v=" + Date.now());
+        if(!res.ok) throw new Error(res.status + " " + res.statusText);
+        return await res.json();
       }catch(e){
-        console.error('DBT status load failed', e);
-        const el = document.getElementById('dbt-run-meta');
-        if (el) el.textContent = 'dbt artifacts not found';
+        console.warn("Fetch failed:", url, e);
+        return null;
       }
     }
-    loadDbtStatus();
+
+    function setFreshnessPill(el, status){
+      el.textContent = (status||"—").toUpperCase();
+      el.classList.remove("pass","warn","error");
+      if (!status) return;
+      const s = String(status).toLowerCase();
+      el.classList.add(s === "pass" ? "pass" : s === "warn" ? "warn" : "error");
+    }
+
+    (async function hydrateDbt(){
+      const build = await loadJson("./data/dbt_build.json");
+      const fresh = await loadJson("./data/dbt_source.json");
+
+      // Defaults
+      let modelsOk = 0, modelsTotal = 0;
+      let testsPass = 0, testsTotal = 0;
+      let runAt = "—";
+
+      if (build){
+        // dbt run_results.json shape: metadata.generated_at, results[{unique_id, status}...]
+        runAt = build?.metadata?.generated_at || build?.generated_at || "—";
+        const results = Array.isArray(build.results) ? build.results : [];
+        for (const r of results){
+          const id = r.unique_id || "";
+          const status = String(r.status || "").toLowerCase();
+          if (id.startsWith("model.")){
+            modelsTotal++;
+            if (["success","ok","skipped"].includes(status)) modelsOk++;
+          } else if (id.startsWith("test.")){
+            testsTotal++;
+            if (["pass","success","ok"].includes(status)) testsPass++;
+          }
+        }
+      }
+      document.getElementById("dbt-models").textContent = `${modelsOk} / ${modelsTotal}`;
+      document.getElementById("dbt-tests").textContent  = `${testsPass} / ${testsTotal}`;
+      document.getElementById("dbt-run-at").textContent = runAt;
+
+      // Freshness
+      let overall = null;
+      const order = { pass:0, warn:1, error:2 };
+      if (fresh && Array.isArray(fresh.results)){
+        const srcBits = [];
+        let worst = "pass";
+        for (const r of fresh.results){
+          const st = String(r.status || "error").toLowerCase();
+          if (order[st] > order[worst]) worst = st;
+          const srcName = (r?.unique_id || r?.source_name || r?.node?.name || "source").split(".").slice(-1)[0];
+          srcBits.push(`<span class="pill ${st}">${srcName}: ${st}</span>`);
+        }
+        overall = worst;
+        setFreshnessPill(document.getElementById("dbt-freshness-overall"), overall);
+        document.getElementById("dbt-freshness-sources").innerHTML = srcBits.join(" ");
+      } else {
+        document.getElementById("dbt-freshness-overall").textContent = "—";
+      }
+    })();
   </script>
 </body>
 </html>
