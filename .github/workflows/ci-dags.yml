@@ -12,113 +12,122 @@ permissions:
 jobs:
   dag-checks:
     runs-on: ubuntu-latest
-
     steps:
       - run: echo "CI - Airflow DAGs starting on ${{ github.ref }} (event=${{ github.event_name }})"
 
       - uses: actions/checkout@v4
 
-      # Local composite action (no tag for local paths)
+      # If you don't have this local action, replace these two steps with actions/setup-python + pip install
       - uses: ./.github/actions/setup-python-tooling
         with:
           python-version: "3.11"
 
-      # Detect DAG directory (supports either dags/ or airflow/dags/)
-      - name: Detect DAG directory
-        id: detect
+      # Create helper scripts as files (avoids YAML heredoc pitfalls)
+      - name: Create stub_imports.py
+        run: |
+          cat > stub_imports.py <<'PY'
+          import sys, types, math
+          def stub_module(name, attrs=None):
+              m = types.ModuleType(name)
+              for k, v in (attrs or {}).items():
+                  setattr(m, k, v)
+              sys.modules[name] = m
+          # airflow tree (minimal)
+          stub_module("airflow")
+          stub_module("airflow.models")
+          stub_module("airflow.operators")
+          stub_module("airflow.operators.python")
+          # pandas (basic)
+          class _DF: pass
+          def _read_sql(*a, **k): return _DF()
+          stub_module("pandas", {"DataFrame": _DF, "read_sql": _read_sql, "to_datetime": lambda *a, **k: None})
+          # numpy (basic)
+          stub_module("numpy", {"mean": lambda x: 0.0, "sqrt": math.sqrt, "abs": abs})
+          # psycopg2 (connect shim)
+          class _Conn:
+              autocommit = False
+              def cursor(self):
+                  class C:
+                      def execute(self, *a, **k): pass
+                      def fetchone(self): return [None]
+                      def close(self): pass
+                  return C()
+              def commit(self): pass
+              def close(self): pass
+          def _connect(**kwargs): return _Conn()
+          stub_module("psycopg2", {"connect": _connect})
+          print("Stubbed airflow/pandas/numpy/psycopg2 for import checks.")
+          PY
+
+      - name: Create import_check.py
+        run: |
+          cat > import_check.py <<'PY'
+          import importlib, pathlib, os, sys
+          dag_dir = os.environ.get("DAG_DIR")
+          if not dag_dir:
+              print("DAG_DIR not set", file=sys.stderr)
+              sys.exit(1)
+          for p in pathlib.Path(dag_dir).rglob("*.py"):
+              mod = p.with_suffix("").as_posix().replace("/", ".")
+              print("Importing", mod)
+              importlib.import_module(mod)
+          print("All DAG modules import successfully (with stubs).")
+          PY
+
+      - name: Create py_compile_check.py
+        run: |
+          cat > py_compile_check.py <<'PY'
+          import py_compile, sys, pathlib, os
+          dag_dir = os.environ.get("DAG_DIR")
+          if not dag_dir:
+              print("DAG_DIR not set", file=sys.stderr)
+              sys.exit(1)
+          files = [str(p) for p in pathlib.Path(dag_dir).rglob("*.py")]
+          if not files:
+              print("No DAG .py files - skipping syntax/import checks.")
+              sys.exit(0)
+          for f in files:
+              py_compile.compile(f, doraise=True)
+          print("py_compile OK on", len(files), "files")
+          PY
+
+      - name: Run DAG checks
         shell: bash
         run: |
+          set -euo pipefail
+
+          # Detect DAG dir
+          DAG_DIR=""
           if [ -d "dags" ]; then
-            echo "dir=dags" >> "$GITHUB_OUTPUT"
+            DAG_DIR="dags"
           elif [ -d "airflow/dags" ]; then
-            echo "dir=airflow/dags" >> "$GITHUB_OUTPUT"
-          else
-            echo "dir=" >> "$GITHUB_OUTPUT"
+            DAG_DIR="airflow/dags"
           fi
 
-      - name: No DAG directory - skip
-        if: ${{ steps.detect.outputs.dir == '' }}
-        run: echo "No DAG directory found; skipping Airflow DAG checks."
-
-      - name: Set DAG_DIR env
-        if: ${{ steps.detect.outputs.dir != '' }}
-        run: echo "DAG_DIR=${{ steps.detect.outputs.dir }}" >> "$GITHUB_ENV"
-
-      # ---- Stub imports without heredoc (write to a file, then run) ----
-      - name: Stub imports (airflow/pandas/numpy/psycopg2)
-        if: ${{ steps.detect.outputs.dir != '' }}
-        shell: bash
-        run: |
-          cat > _stub_imports.py <<'PY'
-import sys, types, math
-def stub_module(name, attrs=None):
-    m = types.ModuleType(name)
-    for k, v in (attrs or {}).items():
-        setattr(m, k, v)
-    sys.modules[name] = m
-# airflow tree (minimal)
-stub_module("airflow")
-stub_module("airflow.models")
-stub_module("airflow.operators")
-stub_module("airflow.operators.python")
-# pandas (basic)
-class _DF: pass
-def _read_sql(*a, **k): return _DF()
-stub_module("pandas", {"DataFrame": _DF, "read_sql": _read_sql, "to_datetime": lambda *a, **k: None})
-# numpy (basic)
-stub_module("numpy", {"mean": lambda x: 0.0, "sqrt": math.sqrt, "abs": abs})
-# psycopg2 (connect shim)
-class _Conn:
-    autocommit = False
-    def cursor(self):
-        class C:
-            def execute(self, *a, **k): pass
-            def fetchone(self): return [None]
-            def close(self): pass
-        return C()
-    def commit(self): pass
-    def close(self): pass
-def _connect(**kwargs): return _Conn()
-stub_module("psycopg2", {"connect": _connect})
-print("Stubbed airflow/pandas/numpy/psycopg2 for import checks.")
-PY
-          python _stub_imports.py
-
-      - name: Ruff (style)
-        if: ${{ steps.detect.outputs.dir != '' }}
-        run: ruff check "$DAG_DIR"
-
-      - name: Syntax check (py_compile)
-        if: ${{ steps.detect.outputs.dir != '' }}
-        shell: bash
-        run: |
-          files=$(git ls-files "$DAG_DIR/**/*.py")
-          if [ -z "$files" ]; then
-            echo "No DAG .py files - skipping syntax/import checks."
+          if [ -z "$DAG_DIR" ]; then
+            echo "No DAG directory found; skipping Airflow DAG checks."
             exit 0
           fi
-          python - <<PY
-import py_compile, sys
-files = """$files""".split()
-for f in files:
-    py_compile.compile(f, doraise=True)
-print("py_compile OK on", len(files), "files")
-PY
+          echo "Using DAG_DIR=$DAG_DIR"
+          echo "DAG_DIR=$DAG_DIR" >> "$GITHUB_ENV"
 
-      - name: Import check (importlib)
-        if: ${{ steps.detect.outputs.dir != '' }}
-        shell: bash
-        run: |
-          python - <<'PY'
-import importlib, pathlib, os
-dag_dir = os.environ["DAG_DIR"]
-for p in pathlib.Path(dag_dir).rglob("*.py"):
-    mod = p.with_suffix("").as_posix().replace("/", ".")
-    print("Importing", mod)
-    importlib.import_module(mod)
-print("All DAG modules import successfully (with stubs).")
-PY
+          # Stub imports so DAG modules can import without real deps
+          python stub_imports.py
 
-      - name: Mypy (types)
-        if: ${{ steps.detect.outputs.dir != '' }}
-        run: mypy --ignore-missing-imports "$DAG_DIR"
+          # Ruff (style) — install if your local action doesn't
+          if ! command -v ruff >/dev/null 2>&1; then
+            pip install ruff
+          fi
+          ruff check "$DAG_DIR"
+
+          # Syntax check via py_compile
+          python py_compile_check.py
+
+          # Import check
+          python import_check.py
+
+          # mypy (types) — install if your local action doesn't
+          if ! command -v mypy >/dev/null 2>&1; then
+            pip install mypy
+          fi
+          mypy --ignore-missing-imports "$DAG_DIR"
