@@ -1,0 +1,12 @@
+
+    
+    
+    truncate table "airflow"."analytics"."cities";
+    -- dbt seed --
+    
+          insert into "airflow"."analytics"."cities" ("city") values
+          (%s),(%s)
+      
+
+;
+  

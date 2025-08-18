@@ -10,20 +10,19 @@ sources:
       - name: observations
         identifier: observation_hourly
         description: Hourly observed weather per city.
-        loaded_at_field: ingested_at          # <-- change if your column differs
+        loaded_at_field: valid_time
         freshness:
           warn_after: {count: 6, period: hour}
-          error_after: {count: 12, period: hour}
+          error_after: {count: 30, period: hour}
 
       - name: forecasts
         identifier: forecast_hourly
-        description: Hourly forecast snapshots per city/vendor (may include multiple runs per ts).
-        loaded_at_field: ingested_at          # <-- change if your column differs
+        description: Hourly forecast snapshots per city (multiple model runs per valid time).
+        loaded_at_field: model_run
         freshness:
           warn_after: {count: 6, period: hour}
-          error_after: {count: 12, period: hour}
+          error_after: {count: 30, period: hour}
 
       - name: metrics_daily
         identifier: metrics_daily
-        description: Daily pre-aggregated metrics produced by the pipeline (optional source for validation/compare).
-        loaded_at_field: ingested_at          # <-- if this table has only a date, use that column or remove freshness
+        description: Daily pre-aggregated metrics produced by the pipeline.

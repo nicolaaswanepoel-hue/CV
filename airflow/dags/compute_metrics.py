@@ -1,12 +1,16 @@
 from datetime import datetime, timedelta
-from airflow import DAG  # type: ignore[attr-defined]
-from airflow.operators.python import PythonOperator  # type: ignore[attr-defined]
+from pathlib import Path
 import logging
 import os
-import psycopg2
-import pandas as pd
+
 import numpy as np
-from pathlib import Path
+import pandas as pd
+import psycopg2
+
+from airflow import DAG  # type: ignore[attr-defined]
+from airflow.operators.python import PythonOperator  # type: ignore[attr-defined]
+from airflow.operators.bash import BashOperator  # type: ignore[attr-defined]
+from airflow.utils.trigger_rule import TriggerRule
 
 log = logging.getLogger("compute_metrics")
 
@@ -19,8 +23,23 @@ ALLOW_NEGATIVE = os.environ.get("METRICS_ALLOW_NEGATIVE", "false").lower() in {
 }
 PG = dict(host="postgres", dbname="airflow", user="airflow", password="airflow")
 CITY = os.environ.get("CITY")  # optional city filter for both exports
+
 OUTPUT_DIR = Path(os.environ.get("OUTPUT_DIR", "/opt/airflow/docs/data"))
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+DBT_ENV = {
+    "DBT_PROFILES_DIR": "/opt/airflow/dbt",
+    "DBT_HOST": PG["host"],
+    "DBT_PORT": "5432",
+    "DBT_DB": PG["dbname"],
+    "DBT_SCHEMA": "analytics",
+    "DBT_USER": PG["user"],
+    "DBT_PASSWORD": PG["password"],
+    "DBT_THREADS": "4",
+    # for psql \copy
+    "PGPASSWORD": PG["password"],
+    "PATH": "/home/airflow/.local/bin:/usr/local/bin:/usr/bin:/bin",
+}
 
 
 # ------------------- Helpers -------------------
@@ -244,10 +263,8 @@ def export_csvs():
 def export_daily_forecast_vs_obs():
     """
     Build a tidy daily table of forecast vs observed per city and variable.
-
-    For each hourly valid_time, pick the forecast with the smallest non-negative horizon
-    (i.e., the most recent model run at or before valid_time). Then aggregate to day-level:
-
+    For each hourly valid_time, pick the forecast with the smallest non-negative horizon.
+    Then aggregate to day-level:
       - temperature_2m: daily mean
       - precipitation:  daily sum
       - wind_speed_10m: daily mean
@@ -257,7 +274,6 @@ def export_daily_forecast_vs_obs():
 
     conn = psycopg2.connect(**PG)
     try:
-        # Determine rolling window bounds from observations table
         q_max_obs = "SELECT MAX(valid_time) AT TIME ZONE 'UTC' AS max_obs FROM weather.observation_hourly"
         max_obs = pd.read_sql(q_max_obs, conn).iloc[0]["max_obs"]
         if pd.isna(max_obs):
@@ -267,14 +283,11 @@ def export_daily_forecast_vs_obs():
             pd.to_datetime(max_obs).normalize() - pd.Timedelta(days=ndays - 1)
         ).to_pydatetime()
 
-        # CITY filter (optional)
         where_city = "AND o.city = %(city)s" if CITY else ""
         params = {"min_dt": min_day, "max_dt": max_obs}
         if CITY:
             params["city"] = CITY
 
-        # For each (city, valid_time) choose the forecast row with minimum non-negative horizon.
-        # We compute horizon_hours in SQL and use DISTINCT ON to keep the closest (>=0) forecast.
         q = f"""
         WITH joined AS (
             SELECT
@@ -326,8 +339,6 @@ def export_daily_forecast_vs_obs():
     finally:
         conn.close()
 
-    # Reshape to tidy long form: one row per (day, city, var)
-    # vars: temperature_2m (mean), precipitation (sum), wind_speed_10m (mean)
     long_rows = []
     for _, r in df.iterrows():
         day = pd.to_datetime(r["day"]).date()
@@ -364,8 +375,6 @@ def export_daily_forecast_vs_obs():
     out = pd.DataFrame(long_rows)
     gen = datetime.utcnow().isoformat(timespec="seconds") + "Z"
     out.insert(0, "generated_at", gen)
-
-    # Write CSV
     (OUTPUT_DIR / "forecast_vs_obs.csv").write_text(out.to_csv(index=False))
     log.info(
         "export_daily_forecast_vs_obs: wrote %d tidy rows to %s",
@@ -381,21 +390,77 @@ with DAG(
     schedule_interval="30 2 * * *",  # daily 02:30 UTC
     catchup=False,
     default_args={"retries": 1, "retry_delay": timedelta(minutes=5)},
-    description="Compute daily MAE/RMSE/Bias by horizon + export daily forecast vs observed.",
+    description="Compute daily MAE/RMSE/Bias by horizon + export daily forecast vs observed + dbt build.",
+    tags=["weather", "dbt", "analytics"],
 ) as dag:
+    # Ensure target table exists
     ensure = PythonOperator(task_id="ensure_table", python_callable=ensure_table)
 
+    # --- dbt orchestration ---
+    dbt_source_freshness = BashOperator(
+        task_id="dbt_source_freshness",
+        bash_command=(
+            "cd /opt/airflow/dbt && "
+            "dbt source freshness -s 'source:weather' --profiles-dir . --project-dir ."
+        ),
+        env=DBT_ENV,
+    )
+
+    dbt_build = BashOperator(
+        task_id="dbt_build",
+        bash_command=(
+            "cd /opt/airflow/dbt && "
+            "dbt deps && "
+            "dbt build --profiles-dir . --project-dir ."
+        ),
+        env=DBT_ENV,
+    )
+
+    export_dbt_daily_kpis_csv = BashOperator(
+        task_id="export_dbt_daily_kpis_csv",
+        bash_command=(
+            "mkdir -p /opt/airflow/docs/data && "
+            "psql -h postgres -U airflow -d airflow "
+            '-c "\\copy ('
+            "select * from analytics_mart.daily_kpis order by day desc, city"
+            ") to '/opt/airflow/docs/data/daily_kpis.csv' csv header\""
+        ),
+        env=DBT_ENV,
+    )
+
+    dbt_docs_generate = BashOperator(
+        task_id="dbt_docs_generate",
+        bash_command=(
+            "cd /opt/airflow/dbt && "
+            "dbt docs generate --profiles-dir . --project-dir . && "
+            "mkdir -p /opt/airflow/docs/dbt && "
+            "cp -r target/* /opt/airflow/docs/dbt/"
+        ),
+        env=DBT_ENV,
+        trigger_rule=TriggerRule.ALL_DONE,
+    )
+
+    prep_dbt_dirs = BashOperator(
+        task_id="prep_dbt_dirs",
+        bash_command=(
+            "cd /opt/airflow/dbt && "
+            "mkdir -p logs target && "
+            "chmod -R ug+rwX logs target"
+        ),
+        env=DBT_ENV,
+    )
+
+    # Python metrics pipeline
     compute = PythonOperator(
         task_id="compute_for_yesterday", python_callable=compute_for_yesterday
     )
-
     export_metrics = PythonOperator(task_id="export_csvs", python_callable=export_csvs)
-
     export_compare = PythonOperator(
         task_id="export_daily_forecast_vs_obs",
         python_callable=export_daily_forecast_vs_obs,
     )
 
-    # The compare export does not depend on metrics insert, but both need base tables ready.
-    # Keep a simple linear flow so everything runs once per day and artifacts are fresh.
-    ensure >> compute >> export_metrics >> export_compare
+    # ----- Wiring -----
+    ensure >> prep_dbt_dirs >> dbt_source_freshness >> dbt_build
+    dbt_build >> export_dbt_daily_kpis_csv >> dbt_docs_generate
+    dbt_build >> compute >> export_metrics >> export_compare

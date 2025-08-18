@@ -12,9 +12,9 @@
 
 
 
-select valid_time
-from "airflow"."analytics"."stg_forecasts"
-where valid_time is null
+select city
+from "airflow"."analytics_mart"."dim_city"
+where city is null
 
 
 
