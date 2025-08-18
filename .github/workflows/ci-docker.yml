@@ -1,9 +1,9 @@
 name: CI — Docker build
 on:
   push:
-    paths: ["Dockerfile", "docker/**", ".github/workflows/ci-docker.yml"]
+    paths: ["docker/**", ".github/workflows/ci-docker.yml"]
   pull_request:
-    paths: ["Dockerfile", "docker/**"]
+    paths: ["docker/**"]
 permissions:
   contents: read
 
@@ -12,10 +12,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: docker/setup-buildx-action@v3
-      - name: Build (no push)
+
+      - name: Build Airflow image (no push)
         uses: docker/build-push-action@v6
         with:
-          context: .
-          push: false
+          context: .                         # repo root
+          file: docker/images/airflow.Dockerfile
           tags: local/test:ci
+          load: true                         # load into Docker to enable the next step
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

@@ -1,0 +1,8 @@
+name: "weather_lab"
+version: "1.0.0"
+config-version: 2
+profile: "weather_lab"
+
+models:
+  weather_lab:
+    +materialized: view
