@@ -8,3 +8,7 @@ RUN pip install --no-cache-dir \
     psycopg2-binary \
     meteostat \
     duckdb
+
+#DBT install
+RUN pip install --no-cache-dir "dbt-postgres>=1.7,<2.0"
+
