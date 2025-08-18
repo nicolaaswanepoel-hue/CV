@@ -297,7 +297,8 @@
     window.addEventListener("resize", ()=>{ Chart.defaults.devicePixelRatio = getDPR(); if(chart) chart.resize(); if(chartDaily) chartDaily.resize(); });
 
     // ---------- charts ----------
-    let chart, chartDaily;
+    //let chart, chartDaily;
+    let chart;
 
     function rebuildChartSingle(city, day, varName){
       const data = rows.filter(r=>r.city===city && r.day===day && r.var===varName).sort((a,b)=>(+a.horizon_hours)-(+b.horizon_hours));
