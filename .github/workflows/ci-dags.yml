@@ -18,32 +18,95 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Airflow import stubs
+      # Detect DAG directory (supports either `dags/` or `airflow/dags/`)
+      - name: Detect DAG directory
+        id: detect
+        shell: bash
+        run: |
+          if [ -d "dags" ]; then
+            echo "dir=dags" >> $GITHUB_OUTPUT
+          elif [ -d "airflow/dags" ]; then
+            echo "dir=airflow/dags" >> $GITHUB_OUTPUT
+          else
+            echo "dir=" >> $GITHUB_OUTPUT
+          fi
+
+      # If no DAG dir, exit politely (job succeeds)
+      - name: No DAG directory — skip
+        if: ${{ steps.detect.outputs.dir == '' }}
+        run: echo "No DAG directory found; skipping Airflow DAG checks."
+
+      # Only run checks if DAG dir exists
+      - name: Airflow/pandas/numpy/psycopg2 import stubs
+        if: ${{ steps.detect.outputs.dir != '' }}
         run: |
           python - <<'PY'
 import sys, types
-stub = types.ModuleType("airflow")
-sys.modules["airflow"] = stub
-sys.modules["airflow.models"] = types.ModuleType("airflow.models")
-sys.modules["airflow.operators"] = types.ModuleType("airflow.operators")
-sys.modules["airflow.operators.python"] = types.ModuleType("airflow.operators.python")
-print("Stubbed minimal airflow modules for import checks.")
+def stub_module(name, attrs=None):
+    m = types.ModuleType(name)
+    for k,v in (attrs or {}).items(): setattr(m,k,v)
+    sys.modules[name] = m
+# airflow tree (minimal)
+stub_module("airflow")
+stub_module("airflow.models")
+stub_module("airflow.operators")
+stub_module("airflow.operators.python")
+# pandas (basic)
+class _DF: pass
+def _read_sql(*a, **k): return _DF()
+stub_module("pandas", {"DataFrame": _DF, "read_sql": _read_sql, "to_datetime": lambda *a,**k: None})
+# numpy (basic)
+import math
+stub_module("numpy", {"mean": lambda x: 0.0, "sqrt": math.sqrt, "abs": abs})
+# psycopg2 (connect shim)
+class _Conn:
+    def cursor(self): 
+        class C:
+            def execute(self,*a,**k): pass
+            def fetchone(self): return [None]
+            def close(self): pass
+        return C()
+    def commit(self): pass
+    def close(self): pass
+def _connect(**kwargs): return _Conn()
+stub_module("psycopg2", {"connect": _connect})
+print("Stubbed airflow/pandas/numpy/psycopg2 for import checks.")
 PY
 
       - name: Ruff (style)
-        run: ruff check airflow/dags
+        if: ${{ steps.detect.outputs.dir != '' }}
+        run: ruff check ${{ steps.detect.outputs.dir }}
 
-      - name: Syntax/import check
+      - name: Syntax check (py_compile)
+        if: ${{ steps.detect.outputs.dir != '' }}
+        shell: bash
         run: |
-          python -m py_compile $(git ls-files "airflow/dags/**/*.py")
+          files=$(git ls-files "${{ steps.detect.outputs.dir }}/**/*.py")
+          if [ -z "$files" ]; then
+            echo "No DAG .py files — skipping syntax/import checks."
+            exit 0
+          fi
+          python - <<PY
+import py_compile, sys
+files = """$files""".split()
+for f in files:
+    py_compile.compile(f, doraise=True)
+print("py_compile OK on", len(files), "files")
+PY
+
+      - name: Import check (importlib)
+        if: ${{ steps.detect.outputs.dir != '' }}
+        run: |
           python - <<'PY'
-import importlib, pathlib
-for p in pathlib.Path("airflow/dags").rglob("*.py"):
+import importlib, pathlib, sys, os
+dag_dir = os.environ.get("DAG_DIR", "${{ steps.detect.outputs.dir }}")
+for p in pathlib.Path(dag_dir).rglob("*.py"):
     mod = p.with_suffix("").as_posix().replace("/", ".")
     print("Importing", mod)
     importlib.import_module(mod)
 print("All DAG modules import successfully (with stubs).")
 PY
 
-      - name: Mypy (type checks)
-        run: mypy --ignore-missing-imports airflow/dags
+      - name: Mypy (types)
+        if: ${{ steps.detect.outputs.dir != '' }}
+        run: mypy --ignore-missing-imports ${{ steps.detect.outputs.dir }}

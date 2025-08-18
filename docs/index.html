@@ -179,6 +179,31 @@
     </div>
   </div>
 
+        <!-- NEW: Daily Forecast vs Observed -->
+      <div class="card">
+        <h3 style="margin-top:0">Forecast vs Observed — Daily</h3>
+        <p class="mini">
+          For the selected city and variable, we aggregate hourly data into a daily value
+          (mean for temperature & wind, sum for precipitation) and plot Forecast vs Observed across days.
+        </p>
+        <div class="controls">
+          <label>City:
+            <select id="cityDaily"></select>
+          </label>
+          <label>Variable:
+            <select id="varDaily">
+              <option value="temperature_2m">Temperature (°C)</option>
+              <option value="precipitation">Precipitation (mm)</option>
+              <option value="wind_speed_10m">Wind speed (m/s)</option>
+            </select>
+          </label>
+          <a class="linkbtn" id="btnCompareCsv" href="./data/forecast_vs_obs.csv" download>⬇️ Download compare</a>
+        </div>
+        <canvas id="chartDaily" aria-label="Forecast vs Observed across days"></canvas>
+        <div class="mini">Tip: Hover to see exact daily values. Forecast uses the latest non-negative horizon per hour.</div>
+      </div>
+
+
   <script>
     // ---------- data & helpers ----------
     const csvUrl = "./data/metrics_history.csv?v=" + Date.now(); // cache-bust
@@ -186,6 +211,12 @@
     let metricMode = "mae"; // mae -> rmse -> bias
     let viewMode = "single"; // "single" | "multi"
     let selectedDays = [];   // for multi mode
+
+    // ---------- daily compare config ----------
+    const csvDailyUrl = "./data/forecast_vs_obs.csv?v=" + Date.now();
+    let rowsDaily = [];
+    let chartDaily; // Chart.js instance for daily compare
+
 
     const unitsByVar = {
       temperature_2m: "°C",
@@ -238,6 +269,86 @@
       g.addColorStop(1,"rgba(122,162,255,.2)");
       return g;
     }
+
+        // Map var -> units (reusing same keys as main chart)
+    const unitsByVarDaily = unitsByVar;
+
+    // List unique cities / days from daily dataset
+    const getCitiesDaily = ()=> [...new Set(rowsDaily.map(r=>r.city))].sort((a,b)=>a.localeCompare(b));
+    const getDaysForCityDaily = (c)=> [...new Set(rowsDaily.filter(r=>r.city===c).map(r=>r.day))].sort();
+
+    function populateDailySelectors(){
+      const cs = document.getElementById("cityDaily");
+      const vs = document.getElementById("varDaily");
+      // city list
+      cs.innerHTML = "";
+      for (const c of getCitiesDaily()){
+        const o = document.createElement("option");
+        o.value = o.textContent = c;
+        cs.appendChild(o);
+      }
+      // try to mirror the main city if possible
+      const mainCity = document.getElementById("citySel")?.value;
+      if (mainCity && getCitiesDaily().includes(mainCity)) cs.value = mainCity;
+
+      // keep varDaily as selected, default to temperature
+      if (!vs.value) vs.value = "temperature_2m";
+    }
+
+    function rebuildDailyChart(){
+      if (!rowsDaily.length) return;
+      const city = document.getElementById("cityDaily").value;
+      const v = document.getElementById("varDaily").value;
+      const unit = unitsByVarDaily[v] || "";
+
+      // filter and sort by day
+      const data = rowsDaily.filter(r=>r.city===city && r.var===v).sort((a,b)=> a.day.localeCompare(b.day));
+      const labels = data.map(r=>r.day);
+      const forecast = data.map(r=> +r.forecast_value);
+      const observed = data.map(r=> +r.observed_value);
+
+      if (chartDaily) chartDaily.destroy();
+      const ctx = document.getElementById("chartDaily").getContext("2d");
+      chartDaily = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels,
+          datasets: [
+            {
+              label: "Forecast",
+              data: forecast,
+              borderWidth: 2,
+              tension: .25,
+              pointRadius: 2
+            },
+            {
+              label: "Observed",
+              data: observed,
+              borderWidth: 2,
+              tension: .25,
+              pointRadius: 2
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          interaction: { mode: "nearest", intersect: false },
+          plugins: {
+            legend: { labels: { color: "#cfe1ff" } },
+            tooltip: {
+              callbacks: {
+                label: (c)=> `${c.dataset.label}: ${numFmt(c.parsed.y)} ${unit}`
+              }
+            }
+          },
+          scales: {
+            x: { title: { display: true, text: "Day" }, grid: { color: "rgba(255,255,255,.05)" } },
+            y: { title: { display: true, text: unit }, grid: { color: "rgba(255,255,255,.06)" } }
+          }
+        }
+      });
+    }
+
 
     // --- color helpers for multi-day mode ---
     const PALETTE = [
@@ -552,6 +663,39 @@
         document.getElementById("foot").textContent = "Failed to load CSV: " + err;
       }
     });
+
+        // ---------- load daily compare CSV ----------
+    Papa.parse(csvDailyUrl, {
+      download: true, header: true, dynamicTyping: true,
+      complete: (res)=>{
+        // Expect columns: generated_at, day, city, var, forecast_value, observed_value
+        rowsDaily = res.data.filter(r=> r.day && r.city && r.var);
+
+        populateDailySelectors();
+        rebuildDailyChart();
+
+        // event wiring
+        document.getElementById("cityDaily").addEventListener("change", rebuildDailyChart);
+        document.getElementById("varDaily").addEventListener("change", rebuildDailyChart);
+
+        // keep cityDaily in sync when user changes the main city
+        const citySel = document.getElementById("citySel");
+        if (citySel){
+          citySel.addEventListener("change", ()=>{
+            const c = citySel.value;
+            const cs = document.getElementById("cityDaily");
+            if ([...cs.options].some(o=>o.value===c)) {
+              cs.value = c;
+              rebuildDailyChart();
+            }
+          });
+        }
+      },
+      error: (err)=>{
+        console.error("Failed to load forecast_vs_obs.csv:", err);
+      }
+    });
+
   </script>
 </body>
 </html>

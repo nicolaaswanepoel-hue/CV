@@ -14,43 +14,78 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: "3.11" }
+
       - name: Validate metrics CSVs
         run: |
           python - <<'PY'
-import csv, glob, sys, math
+import csv, glob, sys, math, os
+
+paths = sorted(glob.glob("docs/data/metrics_*.csv")) + sorted(glob.glob("docs/data/metrics_latest.csv"))
+
+if not paths:
+  print("No metrics CSVs found — skipping.")
+  sys.exit(0)
 
 required_cols = ["day","city","var","horizon_hours","mae","rmse","bias"]
 ok = True
 
-for path in sorted(glob.glob("docs/data/metrics_*.csv")) + sorted(glob.glob("docs/data/metrics_latest.csv")):
+for path in paths:
+    try:
+        with open(path, newline="") as f:
+            r = csv.DictReader(f)
+            if r.fieldnames is None:
+                print(f"[FAIL] {path}: empty or unreadable")
+                ok = False
+                continue
+            missing = [c for c in required_cols if c not in r.fieldnames]
+            if missing:
+                print(f"[FAIL] {path}: missing columns {missing}")
+                ok = False
+                continue
+            for i,row in enumerate(r, start=2):
+                try:
+                    h = int(float(row["horizon_hours"]))
+                    mae  = float(row["mae"]); rmse = float(row["rmse"]); bias = float(row["bias"])
+                except Exception as e:
+                    print(f"[FAIL] {path}:{i} parse error: {e}")
+                    ok = False; continue
+                if mae < 0 or rmse < 0:
+                    print(f"[FAIL] {path}:{i} negative mae/rmse")
+                    ok = False
+                # RMSE should be >= MAE (allow tiny FP slop)
+                if rmse + 1e-8 < mae:
+                    print(f"[FAIL] {path}:{i} rmse({rmse}) < mae({mae})")
+                    ok = False
+                if math.isnan(bias) or math.isinf(bias):
+                    print(f"[FAIL] {path}:{i} bias invalid {bias}")
+                    ok = False
+        print(f"[OK] checked {path}")
+    except FileNotFoundError:
+        print(f"[SKIP] {path} not present (race?)")
+
+if not ok:
+    sys.exit(1)
+PY
+
+      # Optional: light check for the new compare file (if present)
+      - name: Validate forecast_vs_obs (optional)
+        run: |
+          python - <<'PY'
+import csv, glob, sys
+paths = sorted(glob.glob("docs/data/forecast_vs_obs.csv"))
+if not paths:
+    print("No forecast_vs_obs.csv — skipping.")
+    sys.exit(0)
+ok = True
+for path in paths:
     with open(path, newline="") as f:
         r = csv.DictReader(f)
-        missing = [c for c in required_cols if c not in r.fieldnames]
-        if missing:
-            print(f"[FAIL] {path}: missing columns {missing}")
+        need = {"day","city","var","forecast_value","observed_value"}
+        if not need.issubset(set(r.fieldnames or [])):
+            print(f"[FAIL] {path}: missing columns {need - set(r.fieldnames or [])}")
             ok = False
-            continue
-        for i,row in enumerate(r, start=2):
-            try:
-                h = int(float(row["horizon_hours"]))
-                mae  = float(row["mae"]); rmse = float(row["rmse"]); bias = float(row["bias"])
-            except Exception as e:
-                print(f"[FAIL] {path}:{i} parse error: {e}")
-                ok = False; continue
-            # Basic invariants
-            if mae < 0 or rmse < 0:
-                print(f"[FAIL] {path}:{i} negative mae/rmse")
-                ok = False
-            if rmse + 1e-9 < mae:  # RMSE should be >= MAE mathematically
-                print(f"[FAIL] {path}:{i} rmse({rmse}) < mae({mae})")
-                ok = False
-            # Bias can be signed, but shouldn't be NaN/inf
-            if math.isnan(bias) or math.isinf(bias):
-                print(f"[FAIL] {path}:{i} bias invalid {bias}")
-                ok = False
-
-    print(f"[OK] checked {path}")
-
+        else:
+            print(f"[OK] checked {path}")
 if not ok:
     sys.exit(1)
 PY

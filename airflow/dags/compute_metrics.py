@@ -10,6 +10,7 @@ from pathlib import Path
 
 log = logging.getLogger("compute_metrics")
 
+# ------------------- Config -------------------
 ALLOW_NEGATIVE = os.environ.get("METRICS_ALLOW_NEGATIVE", "false").lower() in {
     "1",
     "true",
@@ -17,9 +18,12 @@ ALLOW_NEGATIVE = os.environ.get("METRICS_ALLOW_NEGATIVE", "false").lower() in {
     "y",
 }
 PG = dict(host="postgres", dbname="airflow", user="airflow", password="airflow")
-CITY = os.environ.get("CITY")  # if set, filter metrics to this city only (optional)
+CITY = os.environ.get("CITY")  # optional city filter for both exports
+OUTPUT_DIR = Path(os.environ.get("OUTPUT_DIR", "/opt/airflow/docs/data"))
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 
+# ------------------- Helpers -------------------
 def ensure_table():
     log.info("ensure_table: start")
     conn = psycopg2.connect(**PG)
@@ -28,23 +32,22 @@ def ensure_table():
     cur.execute("CREATE SCHEMA IF NOT EXISTS weather;")
     cur.execute(
         """
-      CREATE TABLE IF NOT EXISTS weather.metrics_daily(
-        day date NOT NULL,
-        city text NOT NULL,
-        horizon_hours int NOT NULL,
-        var text NOT NULL,
-        mae double precision,
-        rmse double precision,
-        bias double precision
-      );
-    """
+        CREATE TABLE IF NOT EXISTS weather.metrics_daily(
+          day date NOT NULL,
+          city text NOT NULL,
+          horizon_hours int NOT NULL,
+          var text NOT NULL,
+          mae double precision,
+          rmse double precision,
+          bias double precision
+        );
+        """
     )
-    # helpful composite index for fast dedupe/query
     cur.execute(
         """
-      CREATE INDEX IF NOT EXISTS ix_metrics_daily_day_city_var_h
-      ON weather.metrics_daily(day, city, var, horizon_hours);
-    """
+        CREATE INDEX IF NOT EXISTS ix_metrics_daily_day_city_var_h
+        ON weather.metrics_daily(day, city, var, horizon_hours);
+        """
     )
     cur.close()
     conn.close()
@@ -63,6 +66,7 @@ def _latest_overlap_day(conn):
         return c.fetchone()[0]
 
 
+# ------------------- Existing metrics (unchanged) -------------------
 def compute_for_yesterday():
     conn = psycopg2.connect(**PG)
     try:
@@ -163,9 +167,9 @@ def compute_for_yesterday():
 
         cur.executemany(
             """
-          INSERT INTO weather.metrics_daily (day, city, horizon_hours, var, mae, rmse, bias)
-          VALUES (%s,%s,%s,%s,%s,%s,%s);
-        """,
+              INSERT INTO weather.metrics_daily (day, city, horizon_hours, var, mae, rmse, bias)
+              VALUES (%s,%s,%s,%s,%s,%s,%s);
+            """,
             list(
                 mdf[
                     ["day", "city", "horizon_hours", "var", "mae", "rmse", "bias"]
@@ -184,14 +188,12 @@ def export_csvs():
     ndays = int(os.environ.get("METRICS_HISTORY_DAYS", "30"))  # rolling window
     conn = psycopg2.connect(**PG)
     try:
-        # Find the most recent day we’ve computed
         q_max = "SELECT MAX(day) AS max_day FROM weather.metrics_daily"
         max_day = pd.read_sql(q_max, conn).iloc[0]["max_day"]
         if pd.isna(max_day):
             log.warning("export_csvs: no metrics yet")
             return
 
-        # Pull the latest day for metrics_latest.csv
         q_latest = """
             SELECT day, city, var, horizon_hours, mae, rmse, bias
             FROM weather.metrics_daily
@@ -200,7 +202,6 @@ def export_csvs():
         """
         df_latest = pd.read_sql(q_latest, conn, params={"day": max_day})
 
-        # Pull a rolling window for metrics_history.csv (relative to max_day)
         min_day = pd.to_datetime(max_day) - pd.Timedelta(days=ndays - 1)
         q_hist = """
             SELECT day, city, var, horizon_hours, mae, rmse, bias
@@ -223,19 +224,14 @@ def export_csvs():
         )
         return
 
-    from datetime import datetime as dt
-
-    gen = dt.utcnow().isoformat(timespec="seconds") + "Z"
+    gen = datetime.utcnow().isoformat(timespec="seconds") + "Z"
     df_latest.insert(0, "generated_at", gen)
     df_hist.insert(0, "generated_at", gen)
 
-    outdir = Path(os.environ.get("OUTPUT_DIR", "/opt/airflow/docs/data"))
-    outdir.mkdir(parents=True, exist_ok=True)
-
     day_str = pd.to_datetime(df_latest["day"].max()).strftime("%Y-%m-%d")
-    (outdir / "metrics_latest.csv").write_text(df_latest.to_csv(index=False))
-    (outdir / f"metrics_{day_str}.csv").write_text(df_latest.to_csv(index=False))
-    (outdir / "metrics_history.csv").write_text(df_hist.to_csv(index=False))
+    (OUTPUT_DIR / "metrics_latest.csv").write_text(df_latest.to_csv(index=False))
+    (OUTPUT_DIR / f"metrics_{day_str}.csv").write_text(df_latest.to_csv(index=False))
+    (OUTPUT_DIR / "metrics_history.csv").write_text(df_hist.to_csv(index=False))
 
     log.info(
         "export_csvs: wrote latest (%d rows) and history (%d rows)",
@@ -244,17 +240,162 @@ def export_csvs():
     )
 
 
+# ------------------- NEW: Forecast vs Observed (daily) -------------------
+def export_daily_forecast_vs_obs():
+    """
+    Build a tidy daily table of forecast vs observed per city and variable.
+
+    For each hourly valid_time, pick the forecast with the smallest non-negative horizon
+    (i.e., the most recent model run at or before valid_time). Then aggregate to day-level:
+
+      - temperature_2m: daily mean
+      - precipitation:  daily sum
+      - wind_speed_10m: daily mean
+    """
+    log.info("export_daily_forecast_vs_obs: start")
+    ndays = int(os.environ.get("COMPARE_HISTORY_DAYS", "30"))
+
+    conn = psycopg2.connect(**PG)
+    try:
+        # Determine rolling window bounds from observations table
+        q_max_obs = "SELECT MAX(valid_time) AT TIME ZONE 'UTC' AS max_obs FROM weather.observation_hourly"
+        max_obs = pd.read_sql(q_max_obs, conn).iloc[0]["max_obs"]
+        if pd.isna(max_obs):
+            log.warning("export_daily_forecast_vs_obs: no observations yet")
+            return
+        min_day = (
+            pd.to_datetime(max_obs).normalize() - pd.Timedelta(days=ndays - 1)
+        ).to_pydatetime()
+
+        # CITY filter (optional)
+        where_city = "AND o.city = %(city)s" if CITY else ""
+        params = {"min_dt": min_day, "max_dt": max_obs}
+        if CITY:
+            params["city"] = CITY
+
+        # For each (city, valid_time) choose the forecast row with minimum non-negative horizon.
+        # We compute horizon_hours in SQL and use DISTINCT ON to keep the closest (>=0) forecast.
+        q = f"""
+        WITH joined AS (
+            SELECT
+                o.city,
+                o.valid_time AT TIME ZONE 'UTC' AS valid_time_utc,
+                EXTRACT(EPOCH FROM ((o.valid_time AT TIME ZONE 'UTC') - (f.model_run AT TIME ZONE 'UTC'))) / 3600.0 AS horizon_hours,
+                f.temperature_2m AS f_temp, o.temperature_2m AS o_temp,
+                f.precipitation  AS f_prec, o.precipitation  AS o_prec,
+                f.wind_speed_10m AS f_wind, o.wind_speed_10m AS o_wind
+            FROM weather.observation_hourly o
+            JOIN weather.forecast_hourly f
+              ON f.city = o.city
+             AND f.valid_time = o.valid_time
+            WHERE (o.valid_time AT TIME ZONE 'UTC') >= %(min_dt)s
+              AND (o.valid_time AT TIME ZONE 'UTC') <= %(max_dt)s
+              {where_city}
+        ),
+        best_nonneg AS (
+            SELECT DISTINCT ON (city, valid_time_utc)
+                city, valid_time_utc,
+                horizon_hours,
+                f_temp, o_temp,
+                f_prec, o_prec,
+                f_wind, o_wind
+            FROM joined
+            WHERE horizon_hours >= 0
+            ORDER BY city, valid_time_utc, horizon_hours
+        )
+        SELECT
+            (valid_time_utc::date) AS day,
+            city,
+            AVG(o_temp)  AS o_temp_mean,
+            AVG(f_temp)  AS f_temp_mean,
+            SUM(o_prec)  AS o_prec_sum,
+            SUM(f_prec)  AS f_prec_sum,
+            AVG(o_wind)  AS o_wind_mean,
+            AVG(f_wind)  AS f_wind_mean
+        FROM best_nonneg
+        GROUP BY 1,2
+        ORDER BY 1,2;
+        """
+
+        df = pd.read_sql(q, conn, params=params)
+        log.info("export_daily_forecast_vs_obs: aggregated daily rows=%d", len(df))
+        if df.empty:
+            log.warning("export_daily_forecast_vs_obs: no rows in window")
+            return
+
+    finally:
+        conn.close()
+
+    # Reshape to tidy long form: one row per (day, city, var)
+    # vars: temperature_2m (mean), precipitation (sum), wind_speed_10m (mean)
+    long_rows = []
+    for _, r in df.iterrows():
+        day = pd.to_datetime(r["day"]).date()
+        city = r["city"]
+
+        long_rows.append(
+            {
+                "day": day,
+                "city": city,
+                "var": "temperature_2m",
+                "forecast_value": float(r["f_temp_mean"]),
+                "observed_value": float(r["o_temp_mean"]),
+            }
+        )
+        long_rows.append(
+            {
+                "day": day,
+                "city": city,
+                "var": "precipitation",
+                "forecast_value": float(r["f_prec_sum"]),
+                "observed_value": float(r["o_prec_sum"]),
+            }
+        )
+        long_rows.append(
+            {
+                "day": day,
+                "city": city,
+                "var": "wind_speed_10m",
+                "forecast_value": float(r["f_wind_mean"]),
+                "observed_value": float(r["o_wind_mean"]),
+            }
+        )
+
+    out = pd.DataFrame(long_rows)
+    gen = datetime.utcnow().isoformat(timespec="seconds") + "Z"
+    out.insert(0, "generated_at", gen)
+
+    # Write CSV
+    (OUTPUT_DIR / "forecast_vs_obs.csv").write_text(out.to_csv(index=False))
+    log.info(
+        "export_daily_forecast_vs_obs: wrote %d tidy rows to %s",
+        len(out),
+        OUTPUT_DIR / "forecast_vs_obs.csv",
+    )
+
+
+# ------------------- DAG definition -------------------
 with DAG(
     dag_id="compute_metrics",
     start_date=datetime(2025, 8, 1),
-    schedule_interval="30 2 * * *",  # daily 02:30 UTC (after obs/forecast)
+    schedule_interval="30 2 * * *",  # daily 02:30 UTC
     catchup=False,
     default_args={"retries": 1, "retry_delay": timedelta(minutes=5)},
-    description="Compute daily MAE/RMSE/Bias by city, variable, and forecast horizon.",
+    description="Compute daily MAE/RMSE/Bias by horizon + export daily forecast vs observed.",
 ) as dag:
     ensure = PythonOperator(task_id="ensure_table", python_callable=ensure_table)
+
     compute = PythonOperator(
         task_id="compute_for_yesterday", python_callable=compute_for_yesterday
     )
-    export = PythonOperator(task_id="export_csvs", python_callable=export_csvs)
-    ensure >> compute >> export
+
+    export_metrics = PythonOperator(task_id="export_csvs", python_callable=export_csvs)
+
+    export_compare = PythonOperator(
+        task_id="export_daily_forecast_vs_obs",
+        python_callable=export_daily_forecast_vs_obs,
+    )
+
+    # The compare export does not depend on metrics insert, but both need base tables ready.
+    # Keep a simple linear flow so everything runs once per day and artifacts are fresh.
+    ensure >> compute >> export_metrics >> export_compare
