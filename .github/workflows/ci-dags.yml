@@ -17,12 +17,12 @@ jobs:
 
       - uses: actions/checkout@v4
 
-      # If you don't have this local action, replace these two steps with actions/setup-python + pip install
+      # If you don't have this local action, replace with actions/setup-python + pip install (see note below).
       - uses: ./.github/actions/setup-python-tooling
         with:
           python-version: "3.11"
 
-      # Create helper scripts as files (avoids YAML heredoc pitfalls)
+      # Create helper scripts to avoid YAML heredoc parsing issues
       - name: Create stub_imports.py
         run: |
           cat > stub_imports.py <<'PY'
@@ -109,12 +109,14 @@ jobs:
             exit 0
           fi
           echo "Using DAG_DIR=$DAG_DIR"
-          echo "DAG_DIR=$DAG_DIR" >> "$GITHUB_ENV"
+
+          # Make DAG_DIR visible to child processes (Python)
+          export DAG_DIR="$DAG_DIR"
 
           # Stub imports so DAG modules can import without real deps
           python stub_imports.py
 
-          # Ruff (style) — install if your local action doesn't
+          # Ruff (style) — install if your local action didn't
           if ! command -v ruff >/dev/null 2>&1; then
             pip install ruff
           fi
@@ -126,7 +128,7 @@ jobs:
           # Import check
           python import_check.py
 
-          # mypy (types) — install if your local action doesn't
+          # mypy (types) — install if your local action didn't
           if ! command -v mypy >/dev/null 2>&1; then
             pip install mypy
           fi
