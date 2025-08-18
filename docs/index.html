@@ -30,7 +30,7 @@
     .sub{margin:0 0 16px;color:var(--muted)}
     .badges img{vertical-align:middle;margin-right:6px}
 
-    /* LAYOUT: Hourly + About on top row; Daily full width below */
+    /* LAYOUT: Hourly + About (+ dbt status) on top row; Daily full width below */
     .grid{display:grid;gap:16px;margin-top:16px;grid-template-columns:1fr}
     @media (min-width:1024px){ .grid{grid-template-columns:2fr 1fr} }
 
@@ -39,7 +39,7 @@
       border:1px solid var(--border);
       border-radius:18px;
       padding:18px;
-      box-shadow:0 10px 30px rgba(0,0,0,.35), var(--glow); /* glow on card, not canvas */
+      box-shadow:0 10px 30px rgba(0,0,0,.35), var(--glow);
     }
     .controls{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
     .controls label{display:flex;gap:8px;align-items:center}
@@ -59,10 +59,9 @@
     .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 8px}
     .linkbtn{font-size:14px}
 
-    /* CRISP CHARTS: container sets true size; canvas fills it (no CSS scaling mismatch) */
     .chartBox{position:relative;width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden}
     @media (max-width:1023.98px){ .chartBox{aspect-ratio:4/3} }
-    canvas{display:block;width:100%;height:100%} /* let Chart.js draw at native pixels */
+    canvas{display:block;width:100%;height:100%}
 
     .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
     .chip{padding:6px 10px;border:1px solid var(--border);border-radius:999px;background:#0e1532;color:var(--ink);cursor:pointer;font-size:13px;opacity:.85}
@@ -96,6 +95,16 @@
       <img alt="Docker" src="https://img.shields.io/badge/Docker-✓-blue">
       <img alt="GitHub Pages" src="https://img.shields.io/badge/GitHub%20Pages-live-brightgreen">
       <img alt="Open Meteo API" src="https://img.shields.io/badge/Open--Meteo-API-7aa2ff">
+
+      <!-- dbt: build badge (if you add ci-dbt.yml), docs link, and dynamic test/freshness badges -->
+      <a href="https://github.com/nicolaaswanepoel-hue/CV/actions/workflows/ci-dbt.yml" rel="noopener">
+        <img alt="CI — dbt build" src="https://github.com/nicolaaswanepoel-hue/CV/actions/workflows/ci-dbt.yml/badge.svg?branch=main">
+      </a>
+      <a href="./dbt/index.html" rel="noopener">
+        <img alt="dbt docs" src="https://img.shields.io/badge/dbt%20docs-browse-ff694b">
+      </a>
+      <img alt="dbt tests" src="https://img.shields.io/endpoint?url=https://nicolaaswanepoel-hue.github.io/CV/badges/dbt-tests.json">
+      <img alt="dbt freshness" src="https://img.shields.io/endpoint?url=https://nicolaaswanepoel-hue.github.io/CV/badges/dbt-freshness.json">
     </div>
 
     <!-- Top row: Hourly (left) + About (right) -->
@@ -181,6 +190,30 @@
         </p>
         <p class="mini">Source: <a href="https://github.com/nicolaaswanepoel-hue/CV" rel="noopener">github.com/nicolaaswanepoel-hue/CV</a></p>
         <p class="mini">Data generated: <span id="updated">—</span></p>
+      </div>
+
+      <!-- dbt status card -->
+      <div class="card" id="dbtCard">
+        <h3 style="margin:0 0 6px">dbt status</h3>
+        <div class="mini">Latest <code>dbt build</code> &amp; <code>source freshness</code> from the pipeline.</div>
+
+        <div class="kpis" style="margin-top:10px">
+          <div class="kpi">
+            <div class="label">Models (ok / total)</div>
+            <div class="value"><span id="dbt-models">—</span></div>
+          </div>
+          <div class="kpi">
+            <div class="label">Tests (pass / total)</div>
+            <div class="value"><span id="dbt-tests">—</span></div>
+          </div>
+          <div class="kpi">
+            <div class="label">Docs</div>
+            <div class="value"><a href="./dbt/index.html">Open ➜</a></div>
+          </div>
+        </div>
+
+        <div class="mini" id="dbt-run-meta" style="margin-top:6px">—</div>
+        <div class="mini" style="margin-top:8px"><b>Freshness</b>: <span id="dbt-freshness">Loading…</span></div>
       </div>
     </div>
 
@@ -292,12 +325,11 @@
 
     // ---------- crispness controls ----------
     const mqDesktop = window.matchMedia("(min-width:1024px)");
-    const getDPR = () => Math.min(2.25, window.devicePixelRatio || 1); // balanced sharpness vs perf
+    const getDPR = () => Math.min(2.25, window.devicePixelRatio || 1);
     Chart.defaults.devicePixelRatio = getDPR();
     window.addEventListener("resize", ()=>{ Chart.defaults.devicePixelRatio = getDPR(); if(chart) chart.resize(); if(chartDaily) chartDaily.resize(); });
 
     // ---------- charts ----------
-    //let chart, chartDaily;
     let chart;
 
     function rebuildChartSingle(city, day, varName){
@@ -320,7 +352,7 @@
         }]},
         options:{
           responsive:true,
-          maintainAspectRatio:false,        // fill .chartBox
+          maintainAspectRatio:false,
           interaction:{mode:"nearest",intersect:false},
           plugins:{
             legend:{display:false},
@@ -402,7 +434,7 @@
         },
         options: {
           responsive:true,
-          maintainAspectRatio:false,       // fill .chartBox
+          maintainAspectRatio:false,
           interaction:{mode:"nearest", intersect:false},
           plugins:{
             legend:{labels:{color:"#cfe1ff", font:{size:12}}},
@@ -622,6 +654,53 @@
       },
       error: (err)=>{ console.error("Failed to load forecast_vs_obs.csv:", err); }
     });
+
+    // ---------- load dbt artifacts for status card ----------
+    async function loadDbtStatus(){
+      try{
+        const rr = await fetch('./dbt/run_results.json', {cache:'no-store'}).then(r=>r.json());
+        const src = await fetch('./dbt/sources.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null);
+
+        const results = rr?.results ?? [];
+        const isTest  = r => (r.unique_id||'').startsWith('test.');
+        const isModel = r => (r.unique_id||'').startsWith('model.');
+
+        const modelsOk   = results.filter(r=>isModel(r) && r.status==='success').length;
+        const modelsTot  = results.filter(isModel).length;
+        const testsPass  = results.filter(r=>isTest(r)  && r.status==='pass').length;
+        const testsTot   = results.filter(isTest).length;
+
+        const elModels = document.getElementById('dbt-models');
+        const elTests  = document.getElementById('dbt-tests');
+        if (elModels) elModels.textContent = `${modelsOk} / ${modelsTot}`;
+        if (elTests)  elTests.textContent  = `${testsPass} / ${testsTot}`;
+
+        const gen = rr?.generated_at || rr?.metadata?.generated_at;
+        const meta = document.getElementById('dbt-run-meta');
+        if (meta) meta.textContent = gen ? `Last run: ${new Date(gen).toISOString().replace('T',' ').replace('Z',' UTC')}` : '—';
+
+        const freshEl = document.getElementById('dbt-freshness');
+        if (freshEl){
+          if (src && Array.isArray(src.sources)){
+            const items = src.sources.map(s=>{
+              const name = `${s.source_name}.${s.name}`;
+              const st = s.status || 'pass'; // 'pass'|'warn'|'error'
+              const icon = st==='error' ? '❌' : (st==='warn' ? '⚠️' : '✅');
+              const age  = s.max_loaded_at ? `max_loaded_at=${s.max_loaded_at}` : '';
+              return `${icon} ${name} ${age}`;
+            });
+            freshEl.innerHTML = items.join(' &nbsp;•&nbsp; ');
+          } else {
+            freshEl.textContent = '—';
+          }
+        }
+      }catch(e){
+        console.error('DBT status load failed', e);
+        const el = document.getElementById('dbt-run-meta');
+        if (el) el.textContent = 'dbt artifacts not found';
+      }
+    }
+    loadDbtStatus();
   </script>
 </body>
 </html>
