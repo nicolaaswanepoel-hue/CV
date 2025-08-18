@@ -1,0 +1,16 @@
+version: 2
+models:
+  - name: dim_city
+    tests:
+      - not_null:
+          column_name: city
+  - name: fct_hourly_errors
+    tests:
+      - not_null:
+          column_name: city
+      - not_null:
+          column_name: valid_time
+  - name: daily_kpis
+    tests:
+      - not_null:
+          column_name: day
