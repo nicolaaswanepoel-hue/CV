@@ -16084,3 +16084,1862 @@ with relation as (
 [0m12:29:28.995987 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f76eb98e900>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f76e9dbf080>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f76e99abb90>]}
 [0m12:29:28.996337 [debug] [MainThread]: Flushing usage events
 [0m12:29:29.932993 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m23:24:14.517464 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7391f916cb60>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7391f985a9c0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7391f8b5c140>]}
+
+
+============================== 23:24:14.523016 | 9fb3a2bd-a3be-4a15-a5f8-de633d50f255 ==============================
+[0m23:24:14.523016 [info ] [MainThread]: Running with dbt=1.10.9
+[0m23:24:14.523330 [debug] [MainThread]: running dbt with arguments {'write_json': 'True', 'version_check': 'True', 'send_anonymous_usage_stats': 'True', 'log_cache_events': 'False', 'use_colors': 'True', 'invocation_command': 'dbt source freshness -s source:weather --profiles-dir . --project-dir .', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'introspect': 'True', 'debug': 'False', 'static_parser': 'True', 'fail_fast': 'False', 'indirect_selection': 'eager', 'cache_selected_only': 'False', 'quiet': 'False', 'warn_error': 'None', 'target_path': 'None', 'no_print': 'None', 'printer_width': '80', 'empty': 'None', 'use_experimental_parser': 'False', 'log_format': 'default', 'profiles_dir': '.', 'log_path': 'logs', 'partial_parse': 'True'}
+[0m23:24:14.796151 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'project_id', 'label': '9fb3a2bd-a3be-4a15-a5f8-de633d50f255', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7391f7d171d0>]}
+[0m23:24:14.835752 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'adapter_info', 'label': '9fb3a2bd-a3be-4a15-a5f8-de633d50f255', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7391f7131df0>]}
+[0m23:24:14.836829 [info ] [MainThread]: Registered adapter: postgres=1.9.0
+[0m23:24:14.926904 [debug] [MainThread]: checksum: 6543b8b248ceda473ef0d611849d5d909085b6b714afa9b515e9635faea7af23, vars: {}, profile: , target: , version: 1.10.9
+[0m23:24:15.100325 [debug] [MainThread]: Partial parsing enabled: 0 files deleted, 0 files added, 0 files changed.
+[0m23:24:15.100726 [debug] [MainThread]: Partial parsing enabled, no changes found, skipping parsing
+[0m23:24:15.135301 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'load_project', 'label': '9fb3a2bd-a3be-4a15-a5f8-de633d50f255', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7391f5d635c0>]}
+[0m23:24:15.195005 [debug] [MainThread]: Wrote artifact WritableManifest to ./target/manifest.json
+[0m23:24:15.199637 [debug] [MainThread]: Wrote artifact SemanticManifest to ./target/semantic_manifest.json
+[0m23:24:15.227556 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'resource_counts', 'label': '9fb3a2bd-a3be-4a15-a5f8-de633d50f255', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7391f5da15b0>]}
+[0m23:24:15.227858 [info ] [MainThread]: Found 6 models, 1 seed, 11 data tests, 3 sources, 551 macros
+[0m23:24:15.228077 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': '9fb3a2bd-a3be-4a15-a5f8-de633d50f255', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7391f9b2c530>]}
+[0m23:24:15.229075 [info ] [MainThread]: 
+[0m23:24:15.229311 [info ] [MainThread]: Concurrency: 4 threads (target='dev')
+[0m23:24:15.229501 [info ] [MainThread]: 
+[0m23:24:15.229823 [debug] [MainThread]: Acquiring new postgres connection 'master'
+[0m23:24:15.232382 [debug] [ThreadPool]: Acquiring new postgres connection 'list_airflow_analytics_mart'
+[0m23:24:15.232805 [debug] [ThreadPool]: Acquiring new postgres connection 'list_airflow_analytics_staging'
+[0m23:24:15.238291 [debug] [ThreadPool]: Acquiring new postgres connection 'list_airflow_analytics'
+[0m23:24:15.270633 [debug] [ThreadPool]: Using postgres connection "list_airflow_analytics_mart"
+[0m23:24:15.271025 [debug] [ThreadPool]: Using postgres connection "list_airflow_analytics_staging"
+[0m23:24:15.271302 [debug] [ThreadPool]: Using postgres connection "list_airflow_analytics"
+[0m23:24:15.271504 [debug] [ThreadPool]: On list_airflow_analytics_mart: BEGIN
+[0m23:24:15.271710 [debug] [ThreadPool]: On list_airflow_analytics_staging: BEGIN
+[0m23:24:15.271923 [debug] [ThreadPool]: On list_airflow_analytics: BEGIN
+[0m23:24:15.272155 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m23:24:15.272375 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m23:24:15.272617 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m23:24:15.278840 [debug] [ThreadPool]: SQL status: BEGIN in 0.006 seconds
+[0m23:24:15.279085 [debug] [ThreadPool]: SQL status: BEGIN in 0.006 seconds
+[0m23:24:15.279316 [debug] [ThreadPool]: SQL status: BEGIN in 0.007 seconds
+[0m23:24:15.279486 [debug] [ThreadPool]: Using postgres connection "list_airflow_analytics_staging"
+[0m23:24:15.279717 [debug] [ThreadPool]: Using postgres connection "list_airflow_analytics"
+[0m23:24:15.279929 [debug] [ThreadPool]: Using postgres connection "list_airflow_analytics_mart"
+[0m23:24:15.280165 [debug] [ThreadPool]: On list_airflow_analytics_staging: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "connection_name": "list_airflow_analytics_staging"} */
+select
+      'airflow' as database,
+      tablename as name,
+      schemaname as schema,
+      'table' as type
+    from pg_tables
+    where schemaname ilike 'analytics_staging'
+    union all
+    select
+      'airflow' as database,
+      viewname as name,
+      schemaname as schema,
+      'view' as type
+    from pg_views
+    where schemaname ilike 'analytics_staging'
+    union all
+    select
+      'airflow' as database,
+      matviewname as name,
+      schemaname as schema,
+      'materialized_view' as type
+    from pg_matviews
+    where schemaname ilike 'analytics_staging'
+  
+[0m23:24:15.280399 [debug] [ThreadPool]: On list_airflow_analytics: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "connection_name": "list_airflow_analytics"} */
+select
+      'airflow' as database,
+      tablename as name,
+      schemaname as schema,
+      'table' as type
+    from pg_tables
+    where schemaname ilike 'analytics'
+    union all
+    select
+      'airflow' as database,
+      viewname as name,
+      schemaname as schema,
+      'view' as type
+    from pg_views
+    where schemaname ilike 'analytics'
+    union all
+    select
+      'airflow' as database,
+      matviewname as name,
+      schemaname as schema,
+      'materialized_view' as type
+    from pg_matviews
+    where schemaname ilike 'analytics'
+  
+[0m23:24:15.280688 [debug] [ThreadPool]: On list_airflow_analytics_mart: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "connection_name": "list_airflow_analytics_mart"} */
+select
+      'airflow' as database,
+      tablename as name,
+      schemaname as schema,
+      'table' as type
+    from pg_tables
+    where schemaname ilike 'analytics_mart'
+    union all
+    select
+      'airflow' as database,
+      viewname as name,
+      schemaname as schema,
+      'view' as type
+    from pg_views
+    where schemaname ilike 'analytics_mart'
+    union all
+    select
+      'airflow' as database,
+      matviewname as name,
+      schemaname as schema,
+      'materialized_view' as type
+    from pg_matviews
+    where schemaname ilike 'analytics_mart'
+  
+[0m23:24:15.285933 [debug] [ThreadPool]: SQL status: SELECT 4 in 0.005 seconds
+[0m23:24:15.286189 [debug] [ThreadPool]: SQL status: SELECT 3 in 0.005 seconds
+[0m23:24:15.286384 [debug] [ThreadPool]: SQL status: SELECT 3 in 0.005 seconds
+[0m23:24:15.287413 [debug] [ThreadPool]: On list_airflow_analytics: ROLLBACK
+[0m23:24:15.288155 [debug] [ThreadPool]: On list_airflow_analytics_mart: ROLLBACK
+[0m23:24:15.288904 [debug] [ThreadPool]: On list_airflow_analytics_staging: ROLLBACK
+[0m23:24:15.289242 [debug] [ThreadPool]: On list_airflow_analytics: Close
+[0m23:24:15.289453 [debug] [ThreadPool]: On list_airflow_analytics_staging: Close
+[0m23:24:15.289630 [debug] [ThreadPool]: On list_airflow_analytics_mart: Close
+[0m23:24:15.294177 [debug] [MainThread]: Using postgres connection "master"
+[0m23:24:15.294380 [debug] [MainThread]: On master: BEGIN
+[0m23:24:15.294559 [debug] [MainThread]: Opening a new connection, currently in state init
+[0m23:24:15.298613 [debug] [MainThread]: SQL status: BEGIN in 0.004 seconds
+[0m23:24:15.298815 [debug] [MainThread]: Using postgres connection "master"
+[0m23:24:15.299020 [debug] [MainThread]: On master: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "connection_name": "master"} */
+with relation as (
+        select
+            pg_rewrite.ev_class as class,
+            pg_rewrite.oid as id
+        from pg_rewrite
+    ),
+    class as (
+        select
+            oid as id,
+            relname as name,
+            relnamespace as schema,
+            relkind as kind
+        from pg_class
+    ),
+    dependency as (
+        select distinct
+            pg_depend.objid as id,
+            pg_depend.refobjid as ref
+        from pg_depend
+    ),
+    schema as (
+        select
+            pg_namespace.oid as id,
+            pg_namespace.nspname as name
+        from pg_namespace
+        where nspname != 'information_schema' and nspname not like 'pg\_%'
+    ),
+    referenced as (
+        select
+            relation.id AS id,
+            referenced_class.name ,
+            referenced_class.schema ,
+            referenced_class.kind
+        from relation
+        join class as referenced_class on relation.class=referenced_class.id
+        where referenced_class.kind in ('r', 'v', 'm')
+    ),
+    relationships as (
+        select
+            referenced.name as referenced_name,
+            referenced.schema as referenced_schema_id,
+            dependent_class.name as dependent_name,
+            dependent_class.schema as dependent_schema_id,
+            referenced.kind as kind
+        from referenced
+        join dependency on referenced.id=dependency.id
+        join class as dependent_class on dependency.ref=dependent_class.id
+        where
+            (referenced.name != dependent_class.name or
+             referenced.schema != dependent_class.schema)
+    )
+
+    select
+        referenced_schema.name as referenced_schema,
+        relationships.referenced_name as referenced_name,
+        dependent_schema.name as dependent_schema,
+        relationships.dependent_name as dependent_name
+    from relationships
+    join schema as dependent_schema on relationships.dependent_schema_id=dependent_schema.id
+    join schema as referenced_schema on relationships.referenced_schema_id=referenced_schema.id
+    group by referenced_schema, referenced_name, dependent_schema, dependent_name
+    order by referenced_schema, referenced_name, dependent_schema, dependent_name;
+[0m23:24:15.315193 [debug] [MainThread]: SQL status: SELECT 6 in 0.016 seconds
+[0m23:24:15.316311 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': '9fb3a2bd-a3be-4a15-a5f8-de633d50f255', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7391fa2c54f0>]}
+[0m23:24:15.316611 [debug] [MainThread]: On master: ROLLBACK
+[0m23:24:15.316916 [debug] [MainThread]: Using postgres connection "master"
+[0m23:24:15.317109 [debug] [MainThread]: On master: BEGIN
+[0m23:24:15.317439 [debug] [MainThread]: SQL status: BEGIN in 0.000 seconds
+[0m23:24:15.317659 [debug] [MainThread]: On master: COMMIT
+[0m23:24:15.317853 [debug] [MainThread]: Using postgres connection "master"
+[0m23:24:15.318015 [debug] [MainThread]: On master: COMMIT
+[0m23:24:15.318259 [debug] [MainThread]: SQL status: COMMIT in 0.000 seconds
+[0m23:24:15.318436 [debug] [MainThread]: On master: Close
+[0m23:24:15.323028 [debug] [Thread-1 (]: Began running node source.weather_lab.weather.forecasts
+[0m23:24:15.323250 [debug] [Thread-2 (]: Began running node source.weather_lab.weather.observations
+[0m23:24:15.323506 [info ] [Thread-1 (]: 1 of 2 START freshness of weather.forecasts .................................... [RUN]
+[0m23:24:15.323771 [info ] [Thread-2 (]: 2 of 2 START freshness of weather.observations ................................. [RUN]
+[0m23:24:15.324062 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly list_airflow_analytics_mart, now source.weather_lab.weather.forecasts)
+[0m23:24:15.324302 [debug] [Thread-2 (]: Re-using an available connection from the pool (formerly list_airflow_analytics_staging, now source.weather_lab.weather.observations)
+[0m23:24:15.324553 [debug] [Thread-1 (]: Began compiling node source.weather_lab.weather.forecasts
+[0m23:24:15.324784 [debug] [Thread-2 (]: Began compiling node source.weather_lab.weather.observations
+[0m23:24:15.325016 [debug] [Thread-1 (]: Began executing node source.weather_lab.weather.forecasts
+[0m23:24:15.325234 [debug] [Thread-2 (]: Began executing node source.weather_lab.weather.observations
+[0m23:24:15.325542 [debug] [Thread-1 (]: Using postgres connection "source.weather_lab.weather.forecasts"
+[0m23:24:15.325916 [debug] [Thread-2 (]: Using postgres connection "source.weather_lab.weather.observations"
+[0m23:24:15.326151 [debug] [Thread-1 (]: On source.weather_lab.weather.forecasts: BEGIN
+[0m23:24:15.326366 [debug] [Thread-2 (]: On source.weather_lab.weather.observations: BEGIN
+[0m23:24:15.326576 [debug] [Thread-1 (]: Opening a new connection, currently in state closed
+[0m23:24:15.326786 [debug] [Thread-2 (]: Opening a new connection, currently in state closed
+[0m23:24:15.330657 [debug] [Thread-2 (]: SQL status: BEGIN in 0.004 seconds
+[0m23:24:15.330942 [debug] [Thread-2 (]: On source.weather_lab.weather.observations: COMMIT
+[0m23:24:15.331151 [debug] [Thread-1 (]: SQL status: BEGIN in 0.005 seconds
+[0m23:24:15.331388 [debug] [Thread-2 (]: Using postgres connection "source.weather_lab.weather.observations"
+[0m23:24:15.331611 [debug] [Thread-1 (]: On source.weather_lab.weather.forecasts: COMMIT
+[0m23:24:15.331830 [debug] [Thread-2 (]: On source.weather_lab.weather.observations: COMMIT
+[0m23:24:15.332066 [debug] [Thread-1 (]: Using postgres connection "source.weather_lab.weather.forecasts"
+[0m23:24:15.332345 [debug] [Thread-1 (]: On source.weather_lab.weather.forecasts: COMMIT
+[0m23:24:15.332566 [debug] [Thread-2 (]: SQL status: COMMIT in 0.000 seconds
+[0m23:24:15.336767 [debug] [Thread-2 (]: Using postgres connection "source.weather_lab.weather.observations"
+[0m23:24:15.336996 [debug] [Thread-1 (]: SQL status: COMMIT in 0.004 seconds
+[0m23:24:15.337194 [debug] [Thread-2 (]: On source.weather_lab.weather.observations: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "node_id": "source.weather_lab.weather.observations"} */
+select
+      max(valid_time) as max_loaded_at,
+      now() as snapshotted_at
+    from "airflow"."weather"."observation_hourly"
+    
+  
+[0m23:24:15.338177 [debug] [Thread-1 (]: Using postgres connection "source.weather_lab.weather.forecasts"
+[0m23:24:15.338471 [debug] [Thread-1 (]: On source.weather_lab.weather.forecasts: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "node_id": "source.weather_lab.weather.forecasts"} */
+select
+      max(model_run) as max_loaded_at,
+      now() as snapshotted_at
+    from "airflow"."weather"."forecast_hourly"
+    
+  
+[0m23:24:15.339806 [debug] [Thread-2 (]: SQL status: SELECT 1 in 0.001 seconds
+[0m23:24:15.340569 [debug] [Thread-2 (]: On source.weather_lab.weather.observations: Close
+[0m23:24:15.341705 [debug] [Thread-1 (]: SQL status: SELECT 1 in 0.003 seconds
+[0m23:24:15.341508 [info ] [Thread-2 (]: 2 of 2 PASS freshness of weather.observations .................................. [[32mPASS[0m in 0.02s]
+[0m23:24:15.342456 [debug] [Thread-1 (]: On source.weather_lab.weather.forecasts: Close
+[0m23:24:15.342807 [debug] [Thread-2 (]: Finished running node source.weather_lab.weather.observations
+[0m23:24:15.343307 [info ] [Thread-1 (]: 1 of 2 PASS freshness of weather.forecasts ..................................... [[32mPASS[0m in 0.02s]
+[0m23:24:15.343611 [debug] [Thread-1 (]: Finished running node source.weather_lab.weather.forecasts
+[0m23:24:15.344683 [debug] [MainThread]: Using postgres connection "master"
+[0m23:24:15.344948 [debug] [MainThread]: On master: BEGIN
+[0m23:24:15.345144 [debug] [MainThread]: Opening a new connection, currently in state closed
+[0m23:24:15.348982 [debug] [MainThread]: SQL status: BEGIN in 0.004 seconds
+[0m23:24:15.349192 [debug] [MainThread]: On master: COMMIT
+[0m23:24:15.349368 [debug] [MainThread]: Using postgres connection "master"
+[0m23:24:15.349537 [debug] [MainThread]: On master: COMMIT
+[0m23:24:15.349788 [debug] [MainThread]: SQL status: COMMIT in 0.000 seconds
+[0m23:24:15.349986 [debug] [MainThread]: On master: Close
+[0m23:24:15.350242 [debug] [MainThread]: Connection 'master' was properly closed.
+[0m23:24:15.350422 [debug] [MainThread]: Connection 'source.weather_lab.weather.forecasts' was properly closed.
+[0m23:24:15.350574 [debug] [MainThread]: Connection 'source.weather_lab.weather.observations' was properly closed.
+[0m23:24:15.350714 [debug] [MainThread]: Connection 'list_airflow_analytics' was properly closed.
+[0m23:24:15.350891 [info ] [MainThread]: 
+[0m23:24:15.351086 [info ] [MainThread]: Finished running 2 sources in 0 hours 0 minutes and 0.12 seconds (0.12s).
+[0m23:24:15.367938 [debug] [MainThread]: Wrote artifact WritableManifest to ./target/manifest.json
+[0m23:24:15.368955 [debug] [MainThread]: Wrote artifact SemanticManifest to ./target/semantic_manifest.json
+[0m23:24:15.375740 [debug] [MainThread]: Wrote artifact FreshnessResult to ./target/sources.json
+[0m23:24:15.376015 [info ] [MainThread]: Done.
+[0m23:24:15.377123 [debug] [MainThread]: Resource report: {"command_name": "freshness", "command_success": true, "command_wall_clock_time": 0.8943885, "process_in_blocks": "78480", "process_kernel_time": 0.370235, "process_mem_max_rss": "124980", "process_out_blocks": "2440", "process_user_time": 1.531429}
+[0m23:24:15.377473 [debug] [MainThread]: Command `dbt source freshness` succeeded at 23:24:15.377410 after 0.89 seconds
+[0m23:24:15.377688 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7391f8c39bb0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7391f8a35d30>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7391f8a34b90>]}
+[0m23:24:15.377902 [debug] [MainThread]: Flushing usage events
+[0m23:24:16.466222 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m23:24:18.703526 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7068bdae2780>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7068bbebb6e0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7068bbebb980>]}
+
+
+============================== 23:24:18.707016 | b2494a3c-59b9-4596-af16-c59c8488226e ==============================
+[0m23:24:18.707016 [info ] [MainThread]: Running with dbt=1.10.9
+[0m23:24:18.707336 [debug] [MainThread]: running dbt with arguments {'target_path': 'None', 'log_format': 'default', 'profiles_dir': '/opt/airflow/dbt', 'use_experimental_parser': 'False', 'empty': 'None', 'invocation_command': 'dbt deps', 'use_colors': 'True', 'static_parser': 'True', 'version_check': 'True', 'log_cache_events': 'False', 'fail_fast': 'False', 'log_path': '/opt/airflow/dbt/logs', 'send_anonymous_usage_stats': 'True', 'warn_error': 'None', 'partial_parse': 'True', 'debug': 'False', 'printer_width': '80', 'quiet': 'False', 'write_json': 'True', 'indirect_selection': 'eager', 'introspect': 'True', 'cache_selected_only': 'False', 'no_print': 'None', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])'}
+[0m23:24:18.778111 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'project_id', 'label': 'b2494a3c-59b9-4596-af16-c59c8488226e', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7068bb1029c0>]}
+[0m23:24:18.822384 [debug] [MainThread]: Set downloads directory='/tmp/dbt-downloads-uard3spo'
+[0m23:24:18.822674 [debug] [MainThread]: Making package index registry request: GET https://hub.getdbt.com/api/v1/index.json
+[0m23:24:18.993502 [debug] [MainThread]: Response from registry index: GET https://hub.getdbt.com/api/v1/index.json 200
+[0m23:24:18.994098 [debug] [MainThread]: Making package registry request: GET https://hub.getdbt.com/api/v1/dbt-labs/dbt_utils.json
+[0m23:24:19.162873 [debug] [MainThread]: Response from registry: GET https://hub.getdbt.com/api/v1/dbt-labs/dbt_utils.json 200
+[0m23:24:19.165179 [info ] [MainThread]: Installing dbt-labs/dbt_utils
+[0m23:24:19.517061 [info ] [MainThread]: Installed from version 1.3.0
+[0m23:24:19.517388 [info ] [MainThread]: Up to date!
+[0m23:24:19.517613 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'package', 'label': 'b2494a3c-59b9-4596-af16-c59c8488226e', 'property_': 'install', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7068bad72d20>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7068bad72a50>]}
+[0m23:24:19.518499 [debug] [MainThread]: Resource report: {"command_name": "deps", "command_success": true, "command_wall_clock_time": 0.8435424, "process_in_blocks": "2240", "process_kernel_time": 0.21366, "process_mem_max_rss": "106648", "process_out_blocks": "2296", "process_user_time": 1.112645}
+[0m23:24:19.518785 [debug] [MainThread]: Command `dbt deps` succeeded at 23:24:19.518725 after 0.84 seconds
+[0m23:24:19.519009 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7068bbb0ebd0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7068bd645f40>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7068bae2f440>]}
+[0m23:24:19.519198 [debug] [MainThread]: Flushing usage events
+[0m23:24:20.265915 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m23:24:21.596312 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7ff4a8f27590>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7ff4ab0ee240>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7ff4a93d2b40>]}
+
+
+============================== 23:24:21.599844 | ceab84f3-aed0-4679-949a-5fdfee419049 ==============================
+[0m23:24:21.599844 [info ] [MainThread]: Running with dbt=1.10.9
+[0m23:24:21.600139 [debug] [MainThread]: running dbt with arguments {'log_path': 'logs', 'cache_selected_only': 'False', 'printer_width': '80', 'static_parser': 'True', 'fail_fast': 'False', 'log_cache_events': 'False', 'no_print': 'None', 'log_format': 'default', 'introspect': 'True', 'debug': 'False', 'write_json': 'True', 'empty': 'False', 'version_check': 'True', 'warn_error': 'None', 'target_path': 'None', 'profiles_dir': '.', 'indirect_selection': 'eager', 'invocation_command': 'dbt build --profiles-dir . --project-dir .', 'use_experimental_parser': 'False', 'use_colors': 'True', 'send_anonymous_usage_stats': 'True', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'quiet': 'False', 'partial_parse': 'True'}
+[0m23:24:21.712803 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'project_id', 'label': 'ceab84f3-aed0-4679-949a-5fdfee419049', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7ff4a77c4d70>]}
+[0m23:24:21.753289 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'adapter_info', 'label': 'ceab84f3-aed0-4679-949a-5fdfee419049', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7ff4a8d1e8a0>]}
+[0m23:24:21.753984 [info ] [MainThread]: Registered adapter: postgres=1.9.0
+[0m23:24:21.828812 [debug] [MainThread]: checksum: 6543b8b248ceda473ef0d611849d5d909085b6b714afa9b515e9635faea7af23, vars: {}, profile: , target: , version: 1.10.9
+[0m23:24:21.914892 [debug] [MainThread]: Partial parsing enabled: 0 files deleted, 0 files added, 0 files changed.
+[0m23:24:21.915181 [debug] [MainThread]: Partial parsing enabled, no changes found, skipping parsing
+[0m23:24:21.948903 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'load_project', 'label': 'ceab84f3-aed0-4679-949a-5fdfee419049', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7ff4a637f8f0>]}
+[0m23:24:22.010052 [debug] [MainThread]: Wrote artifact WritableManifest to ./target/manifest.json
+[0m23:24:22.011459 [debug] [MainThread]: Wrote artifact SemanticManifest to ./target/semantic_manifest.json
+[0m23:24:22.040607 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'resource_counts', 'label': 'ceab84f3-aed0-4679-949a-5fdfee419049', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7ff4a63de0c0>]}
+[0m23:24:22.041092 [info ] [MainThread]: Found 6 models, 1 seed, 11 data tests, 3 sources, 551 macros
+[0m23:24:22.043129 [info ] [MainThread]: 
+[0m23:24:22.043387 [info ] [MainThread]: Concurrency: 4 threads (target='dev')
+[0m23:24:22.043558 [info ] [MainThread]: 
+[0m23:24:22.043914 [debug] [MainThread]: Acquiring new postgres connection 'master'
+[0m23:24:22.047132 [debug] [ThreadPool]: Acquiring new postgres connection 'list_airflow'
+[0m23:24:22.047582 [debug] [ThreadPool]: Acquiring new postgres connection 'list_airflow'
+[0m23:24:22.053174 [debug] [ThreadPool]: Acquiring new postgres connection 'list_airflow'
+[0m23:24:22.076176 [debug] [ThreadPool]: Using postgres connection "list_airflow"
+[0m23:24:22.076503 [debug] [ThreadPool]: Using postgres connection "list_airflow"
+[0m23:24:22.076821 [debug] [ThreadPool]: Using postgres connection "list_airflow"
+[0m23:24:22.077075 [debug] [ThreadPool]: On list_airflow: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "connection_name": "list_airflow"} */
+
+    select distinct nspname from pg_namespace
+  
+[0m23:24:22.077301 [debug] [ThreadPool]: On list_airflow: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "connection_name": "list_airflow"} */
+
+    select distinct nspname from pg_namespace
+  
+[0m23:24:22.077525 [debug] [ThreadPool]: On list_airflow: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "connection_name": "list_airflow"} */
+
+    select distinct nspname from pg_namespace
+  
+[0m23:24:22.077742 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m23:24:22.077955 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m23:24:22.078160 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m23:24:22.084661 [debug] [ThreadPool]: SQL status: SELECT 20 in 0.007 seconds
+[0m23:24:22.085019 [debug] [ThreadPool]: SQL status: SELECT 20 in 0.007 seconds
+[0m23:24:22.085216 [debug] [ThreadPool]: SQL status: SELECT 20 in 0.007 seconds
+[0m23:24:22.086189 [debug] [ThreadPool]: On list_airflow: Close
+[0m23:24:22.086857 [debug] [ThreadPool]: On list_airflow: Close
+[0m23:24:22.087527 [debug] [ThreadPool]: On list_airflow: Close
+[0m23:24:22.089247 [debug] [ThreadPool]: Re-using an available connection from the pool (formerly list_airflow, now list_airflow_analytics)
+[0m23:24:22.089643 [debug] [ThreadPool]: Re-using an available connection from the pool (formerly list_airflow, now list_airflow_analytics_staging)
+[0m23:24:22.093728 [debug] [ThreadPool]: Using postgres connection "list_airflow_analytics"
+[0m23:24:22.094058 [debug] [ThreadPool]: Re-using an available connection from the pool (formerly list_airflow, now list_airflow_analytics_mart)
+[0m23:24:22.095000 [debug] [ThreadPool]: Using postgres connection "list_airflow_analytics_staging"
+[0m23:24:22.095230 [debug] [ThreadPool]: On list_airflow_analytics: BEGIN
+[0m23:24:22.096358 [debug] [ThreadPool]: Using postgres connection "list_airflow_analytics_mart"
+[0m23:24:22.096606 [debug] [ThreadPool]: On list_airflow_analytics_staging: BEGIN
+[0m23:24:22.096810 [debug] [ThreadPool]: Opening a new connection, currently in state closed
+[0m23:24:22.097010 [debug] [ThreadPool]: On list_airflow_analytics_mart: BEGIN
+[0m23:24:22.097215 [debug] [ThreadPool]: Opening a new connection, currently in state closed
+[0m23:24:22.097572 [debug] [ThreadPool]: Opening a new connection, currently in state closed
+[0m23:24:22.101528 [debug] [ThreadPool]: SQL status: BEGIN in 0.005 seconds
+[0m23:24:22.101792 [debug] [ThreadPool]: SQL status: BEGIN in 0.005 seconds
+[0m23:24:22.102012 [debug] [ThreadPool]: Using postgres connection "list_airflow_analytics"
+[0m23:24:22.102182 [debug] [ThreadPool]: SQL status: BEGIN in 0.005 seconds
+[0m23:24:22.102427 [debug] [ThreadPool]: Using postgres connection "list_airflow_analytics_staging"
+[0m23:24:22.102644 [debug] [ThreadPool]: On list_airflow_analytics: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "connection_name": "list_airflow_analytics"} */
+select
+      'airflow' as database,
+      tablename as name,
+      schemaname as schema,
+      'table' as type
+    from pg_tables
+    where schemaname ilike 'analytics'
+    union all
+    select
+      'airflow' as database,
+      viewname as name,
+      schemaname as schema,
+      'view' as type
+    from pg_views
+    where schemaname ilike 'analytics'
+    union all
+    select
+      'airflow' as database,
+      matviewname as name,
+      schemaname as schema,
+      'materialized_view' as type
+    from pg_matviews
+    where schemaname ilike 'analytics'
+  
+[0m23:24:22.102853 [debug] [ThreadPool]: Using postgres connection "list_airflow_analytics_mart"
+[0m23:24:22.103076 [debug] [ThreadPool]: On list_airflow_analytics_staging: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "connection_name": "list_airflow_analytics_staging"} */
+select
+      'airflow' as database,
+      tablename as name,
+      schemaname as schema,
+      'table' as type
+    from pg_tables
+    where schemaname ilike 'analytics_staging'
+    union all
+    select
+      'airflow' as database,
+      viewname as name,
+      schemaname as schema,
+      'view' as type
+    from pg_views
+    where schemaname ilike 'analytics_staging'
+    union all
+    select
+      'airflow' as database,
+      matviewname as name,
+      schemaname as schema,
+      'materialized_view' as type
+    from pg_matviews
+    where schemaname ilike 'analytics_staging'
+  
+[0m23:24:22.103386 [debug] [ThreadPool]: On list_airflow_analytics_mart: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "connection_name": "list_airflow_analytics_mart"} */
+select
+      'airflow' as database,
+      tablename as name,
+      schemaname as schema,
+      'table' as type
+    from pg_tables
+    where schemaname ilike 'analytics_mart'
+    union all
+    select
+      'airflow' as database,
+      viewname as name,
+      schemaname as schema,
+      'view' as type
+    from pg_views
+    where schemaname ilike 'analytics_mart'
+    union all
+    select
+      'airflow' as database,
+      matviewname as name,
+      schemaname as schema,
+      'materialized_view' as type
+    from pg_matviews
+    where schemaname ilike 'analytics_mart'
+  
+[0m23:24:22.107996 [debug] [ThreadPool]: SQL status: SELECT 4 in 0.005 seconds
+[0m23:24:22.108235 [debug] [ThreadPool]: SQL status: SELECT 3 in 0.005 seconds
+[0m23:24:22.108421 [debug] [ThreadPool]: SQL status: SELECT 3 in 0.005 seconds
+[0m23:24:22.109312 [debug] [ThreadPool]: On list_airflow_analytics: ROLLBACK
+[0m23:24:22.109982 [debug] [ThreadPool]: On list_airflow_analytics_mart: ROLLBACK
+[0m23:24:22.110644 [debug] [ThreadPool]: On list_airflow_analytics_staging: ROLLBACK
+[0m23:24:22.110951 [debug] [ThreadPool]: On list_airflow_analytics: Close
+[0m23:24:22.111156 [debug] [ThreadPool]: On list_airflow_analytics_mart: Close
+[0m23:24:22.111338 [debug] [ThreadPool]: On list_airflow_analytics_staging: Close
+[0m23:24:22.115861 [debug] [MainThread]: Using postgres connection "master"
+[0m23:24:22.116091 [debug] [MainThread]: On master: BEGIN
+[0m23:24:22.116259 [debug] [MainThread]: Opening a new connection, currently in state init
+[0m23:24:22.120231 [debug] [MainThread]: SQL status: BEGIN in 0.004 seconds
+[0m23:24:22.120439 [debug] [MainThread]: Using postgres connection "master"
+[0m23:24:22.120709 [debug] [MainThread]: On master: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "connection_name": "master"} */
+with relation as (
+        select
+            pg_rewrite.ev_class as class,
+            pg_rewrite.oid as id
+        from pg_rewrite
+    ),
+    class as (
+        select
+            oid as id,
+            relname as name,
+            relnamespace as schema,
+            relkind as kind
+        from pg_class
+    ),
+    dependency as (
+        select distinct
+            pg_depend.objid as id,
+            pg_depend.refobjid as ref
+        from pg_depend
+    ),
+    schema as (
+        select
+            pg_namespace.oid as id,
+            pg_namespace.nspname as name
+        from pg_namespace
+        where nspname != 'information_schema' and nspname not like 'pg\_%'
+    ),
+    referenced as (
+        select
+            relation.id AS id,
+            referenced_class.name ,
+            referenced_class.schema ,
+            referenced_class.kind
+        from relation
+        join class as referenced_class on relation.class=referenced_class.id
+        where referenced_class.kind in ('r', 'v', 'm')
+    ),
+    relationships as (
+        select
+            referenced.name as referenced_name,
+            referenced.schema as referenced_schema_id,
+            dependent_class.name as dependent_name,
+            dependent_class.schema as dependent_schema_id,
+            referenced.kind as kind
+        from referenced
+        join dependency on referenced.id=dependency.id
+        join class as dependent_class on dependency.ref=dependent_class.id
+        where
+            (referenced.name != dependent_class.name or
+             referenced.schema != dependent_class.schema)
+    )
+
+    select
+        referenced_schema.name as referenced_schema,
+        relationships.referenced_name as referenced_name,
+        dependent_schema.name as dependent_schema,
+        relationships.dependent_name as dependent_name
+    from relationships
+    join schema as dependent_schema on relationships.dependent_schema_id=dependent_schema.id
+    join schema as referenced_schema on relationships.referenced_schema_id=referenced_schema.id
+    group by referenced_schema, referenced_name, dependent_schema, dependent_name
+    order by referenced_schema, referenced_name, dependent_schema, dependent_name;
+[0m23:24:22.136799 [debug] [MainThread]: SQL status: SELECT 6 in 0.016 seconds
+[0m23:24:22.138256 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': 'ceab84f3-aed0-4679-949a-5fdfee419049', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7ff497f8c380>]}
+[0m23:24:22.138548 [debug] [MainThread]: On master: ROLLBACK
+[0m23:24:22.138874 [debug] [MainThread]: Using postgres connection "master"
+[0m23:24:22.139073 [debug] [MainThread]: On master: BEGIN
+[0m23:24:22.139430 [debug] [MainThread]: SQL status: BEGIN in 0.000 seconds
+[0m23:24:22.139630 [debug] [MainThread]: On master: COMMIT
+[0m23:24:22.139810 [debug] [MainThread]: Using postgres connection "master"
+[0m23:24:22.139970 [debug] [MainThread]: On master: COMMIT
+[0m23:24:22.140227 [debug] [MainThread]: SQL status: COMMIT in 0.000 seconds
+[0m23:24:22.140436 [debug] [MainThread]: On master: Close
+[0m23:24:22.143499 [debug] [Thread-1 (]: Began running node model.weather_lab.stg_forecasts
+[0m23:24:22.143737 [debug] [Thread-2 (]: Began running node model.weather_lab.stg_observations
+[0m23:24:22.143986 [debug] [Thread-3 (]: Began running node seed.weather_lab.cities
+[0m23:24:22.144314 [info ] [Thread-1 (]: 1 of 18 START sql view model analytics_staging.stg_forecasts ................... [RUN]
+[0m23:24:22.144687 [info ] [Thread-2 (]: 2 of 18 START sql view model analytics_staging.stg_observations ................ [RUN]
+[0m23:24:22.145041 [info ] [Thread-3 (]: 3 of 18 START seed file analytics.cities ....................................... [RUN]
+[0m23:24:22.145477 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly list_airflow_analytics_staging, now model.weather_lab.stg_forecasts)
+[0m23:24:22.145742 [debug] [Thread-2 (]: Re-using an available connection from the pool (formerly list_airflow_analytics_mart, now model.weather_lab.stg_observations)
+[0m23:24:22.145992 [debug] [Thread-3 (]: Re-using an available connection from the pool (formerly list_airflow_analytics, now seed.weather_lab.cities)
+[0m23:24:22.146239 [debug] [Thread-1 (]: Began compiling node model.weather_lab.stg_forecasts
+[0m23:24:22.146487 [debug] [Thread-2 (]: Began compiling node model.weather_lab.stg_observations
+[0m23:24:22.146714 [debug] [Thread-3 (]: Began compiling node seed.weather_lab.cities
+[0m23:24:22.150791 [debug] [Thread-1 (]: Writing injected SQL for node "model.weather_lab.stg_forecasts"
+[0m23:24:22.152268 [debug] [Thread-2 (]: Writing injected SQL for node "model.weather_lab.stg_observations"
+[0m23:24:22.152619 [debug] [Thread-3 (]: Began executing node seed.weather_lab.cities
+[0m23:24:22.158220 [debug] [Thread-1 (]: Began executing node model.weather_lab.stg_forecasts
+[0m23:24:22.162236 [debug] [Thread-2 (]: Began executing node model.weather_lab.stg_observations
+[0m23:24:22.175354 [debug] [Thread-3 (]: Using postgres connection "seed.weather_lab.cities"
+[0m23:24:22.188571 [debug] [Thread-2 (]: Writing runtime sql for node "model.weather_lab.stg_observations"
+[0m23:24:22.188873 [debug] [Thread-1 (]: Writing runtime sql for node "model.weather_lab.stg_forecasts"
+[0m23:24:22.189135 [debug] [Thread-3 (]: On seed.weather_lab.cities: BEGIN
+[0m23:24:22.189671 [debug] [Thread-3 (]: Opening a new connection, currently in state closed
+[0m23:24:22.189919 [debug] [Thread-2 (]: Using postgres connection "model.weather_lab.stg_observations"
+[0m23:24:22.190303 [debug] [Thread-1 (]: Using postgres connection "model.weather_lab.stg_forecasts"
+[0m23:24:22.190532 [debug] [Thread-2 (]: On model.weather_lab.stg_observations: BEGIN
+[0m23:24:22.190836 [debug] [Thread-1 (]: On model.weather_lab.stg_forecasts: BEGIN
+[0m23:24:22.191080 [debug] [Thread-2 (]: Opening a new connection, currently in state closed
+[0m23:24:22.191318 [debug] [Thread-1 (]: Opening a new connection, currently in state closed
+[0m23:24:22.194429 [debug] [Thread-3 (]: SQL status: BEGIN in 0.005 seconds
+[0m23:24:22.194709 [debug] [Thread-3 (]: Using postgres connection "seed.weather_lab.cities"
+[0m23:24:22.194962 [debug] [Thread-3 (]: On seed.weather_lab.cities: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "node_id": "seed.weather_lab.cities"} */
+truncate table "airflow"."analytics"."cities"
+[0m23:24:22.195184 [debug] [Thread-2 (]: SQL status: BEGIN in 0.004 seconds
+[0m23:24:22.195516 [debug] [Thread-2 (]: Using postgres connection "model.weather_lab.stg_observations"
+[0m23:24:22.195753 [debug] [Thread-1 (]: SQL status: BEGIN in 0.004 seconds
+[0m23:24:22.195977 [debug] [Thread-2 (]: On model.weather_lab.stg_observations: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "node_id": "model.weather_lab.stg_observations"} */
+
+  create view "airflow"."analytics_staging"."stg_observations__dbt_tmp"
+    
+    
+  as (
+    select
+  city,
+  valid_time,
+  temperature_2m::numeric as temp_c,
+  precipitation::numeric  as precip_mm
+from "airflow"."weather"."observation_hourly"
+  );
+[0m23:24:22.196237 [debug] [Thread-1 (]: Using postgres connection "model.weather_lab.stg_forecasts"
+[0m23:24:22.196590 [debug] [Thread-1 (]: On model.weather_lab.stg_forecasts: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "node_id": "model.weather_lab.stg_forecasts"} */
+
+  create view "airflow"."analytics_staging"."stg_forecasts__dbt_tmp"
+    
+    
+  as (
+    select
+  city,
+  valid_time,
+  model_run,
+  temperature_2m::numeric as temp_c_forecast,
+  precipitation::numeric  as precip_mm_forecast
+from "airflow"."weather"."forecast_hourly"
+  );
+[0m23:24:22.199797 [debug] [Thread-2 (]: SQL status: CREATE VIEW in 0.003 seconds
+[0m23:24:22.200021 [debug] [Thread-1 (]: SQL status: CREATE VIEW in 0.003 seconds
+[0m23:24:22.203640 [debug] [Thread-2 (]: Using postgres connection "model.weather_lab.stg_observations"
+[0m23:24:22.203892 [debug] [Thread-3 (]: SQL status: TRUNCATE TABLE in 0.008 seconds
+[0m23:24:22.205470 [debug] [Thread-1 (]: Using postgres connection "model.weather_lab.stg_forecasts"
+[0m23:24:22.205715 [debug] [Thread-2 (]: On model.weather_lab.stg_observations: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "node_id": "model.weather_lab.stg_observations"} */
+alter table "airflow"."analytics_staging"."stg_observations" rename to "stg_observations__dbt_backup"
+[0m23:24:22.213666 [debug] [Thread-3 (]: Using postgres connection "seed.weather_lab.cities"
+[0m23:24:22.213940 [debug] [Thread-1 (]: On model.weather_lab.stg_forecasts: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "node_id": "model.weather_lab.stg_forecasts"} */
+alter table "airflow"."analytics_staging"."stg_forecasts" rename to "stg_forecasts__dbt_backup"
+[0m23:24:22.214265 [debug] [Thread-3 (]: On seed.weather_lab.cities: 
+          insert into "airflow"."analytics"."cities" ("city") values
+          (%s),(%s)
+      ...
+[0m23:24:22.214663 [debug] [Thread-2 (]: SQL status: ALTER TABLE in 0.000 seconds
+[0m23:24:22.216164 [debug] [Thread-2 (]: Using postgres connection "model.weather_lab.stg_observations"
+[0m23:24:22.216392 [debug] [Thread-1 (]: SQL status: ALTER TABLE in 0.002 seconds
+[0m23:24:22.216645 [debug] [Thread-3 (]: SQL status: INSERT 0 2 in 0.002 seconds
+[0m23:24:22.216891 [debug] [Thread-2 (]: On model.weather_lab.stg_observations: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "node_id": "model.weather_lab.stg_observations"} */
+alter table "airflow"."analytics_staging"."stg_observations__dbt_tmp" rename to "stg_observations"
+[0m23:24:22.218355 [debug] [Thread-1 (]: Using postgres connection "model.weather_lab.stg_forecasts"
+[0m23:24:22.221181 [debug] [Thread-3 (]: Writing runtime SQL for node "seed.weather_lab.cities"
+[0m23:24:22.221499 [debug] [Thread-1 (]: On model.weather_lab.stg_forecasts: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "node_id": "model.weather_lab.stg_forecasts"} */
+alter table "airflow"."analytics_staging"."stg_forecasts__dbt_tmp" rename to "stg_forecasts"
+[0m23:24:22.221921 [debug] [Thread-2 (]: SQL status: ALTER TABLE in 0.000 seconds
+[0m23:24:22.234970 [debug] [Thread-2 (]: On model.weather_lab.stg_observations: COMMIT
+[0m23:24:22.235895 [debug] [Thread-3 (]: On seed.weather_lab.cities: COMMIT
+[0m23:24:22.236110 [debug] [Thread-1 (]: SQL status: ALTER TABLE in 0.014 seconds
+[0m23:24:22.236317 [debug] [Thread-2 (]: Using postgres connection "model.weather_lab.stg_observations"
+[0m23:24:22.236569 [debug] [Thread-3 (]: Using postgres connection "seed.weather_lab.cities"
+[0m23:24:22.237249 [debug] [Thread-1 (]: On model.weather_lab.stg_forecasts: COMMIT
+[0m23:24:22.237481 [debug] [Thread-2 (]: On model.weather_lab.stg_observations: COMMIT
+[0m23:24:22.237700 [debug] [Thread-3 (]: On seed.weather_lab.cities: COMMIT
+[0m23:24:22.237943 [debug] [Thread-1 (]: Using postgres connection "model.weather_lab.stg_forecasts"
+[0m23:24:22.238275 [debug] [Thread-1 (]: On model.weather_lab.stg_forecasts: COMMIT
+[0m23:24:22.241533 [debug] [Thread-2 (]: SQL status: COMMIT in 0.003 seconds
+[0m23:24:22.245147 [debug] [Thread-2 (]: Applying DROP to: "airflow"."analytics_staging"."stg_observations__dbt_backup"
+[0m23:24:22.245548 [debug] [Thread-3 (]: SQL status: COMMIT in 0.007 seconds
+[0m23:24:22.245925 [debug] [Thread-1 (]: SQL status: COMMIT in 0.007 seconds
+[0m23:24:22.249142 [debug] [Thread-2 (]: Using postgres connection "model.weather_lab.stg_observations"
+[0m23:24:22.250261 [debug] [Thread-3 (]: On seed.weather_lab.cities: Close
+[0m23:24:22.252406 [debug] [Thread-1 (]: Applying DROP to: "airflow"."analytics_staging"."stg_forecasts__dbt_backup"
+[0m23:24:22.252690 [debug] [Thread-2 (]: On model.weather_lab.stg_observations: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "node_id": "model.weather_lab.stg_observations"} */
+drop view if exists "airflow"."analytics_staging"."stg_observations__dbt_backup" cascade
+[0m23:24:22.253122 [debug] [Thread-1 (]: Using postgres connection "model.weather_lab.stg_forecasts"
+[0m23:24:22.254210 [debug] [Thread-1 (]: On model.weather_lab.stg_forecasts: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "node_id": "model.weather_lab.stg_forecasts"} */
+drop view if exists "airflow"."analytics_staging"."stg_forecasts__dbt_backup" cascade
+[0m23:24:22.254796 [debug] [Thread-3 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': 'ceab84f3-aed0-4679-949a-5fdfee419049', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7ff4aaac36b0>]}
+[0m23:24:22.255144 [info ] [Thread-3 (]: 3 of 18 OK loaded seed file analytics.cities ................................... [[32mINSERT 2[0m in 0.11s]
+[0m23:24:22.255503 [debug] [Thread-3 (]: Finished running node seed.weather_lab.cities
+[0m23:24:22.255938 [debug] [Thread-4 (]: Began running node model.weather_lab.stg_cities
+[0m23:24:22.256249 [info ] [Thread-4 (]: 4 of 18 START sql view model analytics_staging.stg_cities ...................... [RUN]
+[0m23:24:22.256573 [debug] [Thread-4 (]: Acquiring new postgres connection 'model.weather_lab.stg_cities'
+[0m23:24:22.256770 [debug] [Thread-4 (]: Began compiling node model.weather_lab.stg_cities
+[0m23:24:22.258157 [debug] [Thread-4 (]: Writing injected SQL for node "model.weather_lab.stg_cities"
+[0m23:24:22.258371 [debug] [Thread-2 (]: SQL status: DROP VIEW in 0.004 seconds
+[0m23:24:22.259242 [debug] [Thread-2 (]: On model.weather_lab.stg_observations: Close
+[0m23:24:22.259493 [debug] [Thread-1 (]: SQL status: DROP VIEW in 0.005 seconds
+[0m23:24:22.260265 [debug] [Thread-1 (]: On model.weather_lab.stg_forecasts: Close
+[0m23:24:22.260680 [debug] [Thread-2 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': 'ceab84f3-aed0-4679-949a-5fdfee419049', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7ff497e93110>]}
+[0m23:24:22.261166 [debug] [Thread-4 (]: Began executing node model.weather_lab.stg_cities
+[0m23:24:22.261870 [debug] [Thread-1 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': 'ceab84f3-aed0-4679-949a-5fdfee419049', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7ff4a5b5ce30>]}
+[0m23:24:22.261590 [info ] [Thread-2 (]: 2 of 18 OK created sql view model analytics_staging.stg_observations ........... [[32mCREATE VIEW[0m in 0.11s]
+[0m23:24:22.263627 [debug] [Thread-4 (]: Writing runtime sql for node "model.weather_lab.stg_cities"
+[0m23:24:22.264003 [info ] [Thread-1 (]: 1 of 18 OK created sql view model analytics_staging.stg_forecasts .............. [[32mCREATE VIEW[0m in 0.12s]
+[0m23:24:22.264372 [debug] [Thread-2 (]: Finished running node model.weather_lab.stg_observations
+[0m23:24:22.264799 [debug] [Thread-1 (]: Finished running node model.weather_lab.stg_forecasts
+[0m23:24:22.265381 [debug] [Thread-3 (]: Began running node test.weather_lab.dbt_utils_unique_combination_of_columns_stg_observations_city__valid_time.3812616f84
+[0m23:24:22.265646 [debug] [Thread-1 (]: Began running node test.weather_lab.not_null_stg_observations_city.82496b7b7b
+[0m23:24:22.265877 [debug] [Thread-2 (]: Began running node test.weather_lab.not_null_stg_observations_valid_time.43830f9520
+[0m23:24:22.266152 [debug] [Thread-4 (]: Using postgres connection "model.weather_lab.stg_cities"
+[0m23:24:22.266456 [info ] [Thread-3 (]: 5 of 18 START test dbt_utils_unique_combination_of_columns_stg_observations_city__valid_time  [RUN]
+[0m23:24:22.266821 [info ] [Thread-1 (]: 6 of 18 START test not_null_stg_observations_city .............................. [RUN]
+[0m23:24:22.267089 [info ] [Thread-2 (]: 7 of 18 START test not_null_stg_observations_valid_time ........................ [RUN]
+[0m23:24:22.267373 [debug] [Thread-4 (]: On model.weather_lab.stg_cities: BEGIN
+[0m23:24:22.267638 [debug] [Thread-3 (]: Re-using an available connection from the pool (formerly seed.weather_lab.cities, now test.weather_lab.dbt_utils_unique_combination_of_columns_stg_observations_city__valid_time.3812616f84)
+[0m23:24:22.267884 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly model.weather_lab.stg_forecasts, now test.weather_lab.not_null_stg_observations_city.82496b7b7b)
+[0m23:24:22.268197 [debug] [Thread-2 (]: Re-using an available connection from the pool (formerly model.weather_lab.stg_observations, now test.weather_lab.not_null_stg_observations_valid_time.43830f9520)
+[0m23:24:22.268431 [debug] [Thread-4 (]: Opening a new connection, currently in state init
+[0m23:24:22.268709 [debug] [Thread-3 (]: Began compiling node test.weather_lab.dbt_utils_unique_combination_of_columns_stg_observations_city__valid_time.3812616f84
+[0m23:24:22.268932 [debug] [Thread-1 (]: Began compiling node test.weather_lab.not_null_stg_observations_city.82496b7b7b
+[0m23:24:22.269148 [debug] [Thread-2 (]: Began compiling node test.weather_lab.not_null_stg_observations_valid_time.43830f9520
+[0m23:24:22.276219 [debug] [Thread-3 (]: Writing injected SQL for node "test.weather_lab.dbt_utils_unique_combination_of_columns_stg_observations_city__valid_time.3812616f84"
+[0m23:24:22.276472 [debug] [Thread-4 (]: SQL status: BEGIN in 0.008 seconds
+[0m23:24:22.280915 [debug] [Thread-1 (]: Writing injected SQL for node "test.weather_lab.not_null_stg_observations_city.82496b7b7b"
+[0m23:24:22.282845 [debug] [Thread-2 (]: Writing injected SQL for node "test.weather_lab.not_null_stg_observations_valid_time.43830f9520"
+[0m23:24:22.283204 [debug] [Thread-4 (]: Using postgres connection "model.weather_lab.stg_cities"
+[0m23:24:22.283618 [debug] [Thread-3 (]: Began executing node test.weather_lab.dbt_utils_unique_combination_of_columns_stg_observations_city__valid_time.3812616f84
+[0m23:24:22.284076 [debug] [Thread-4 (]: On model.weather_lab.stg_cities: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "node_id": "model.weather_lab.stg_cities"} */
+
+  create view "airflow"."analytics_staging"."stg_cities__dbt_tmp"
+    
+    
+  as (
+    select city, upper(city) as city_upper
+from "airflow"."analytics"."cities"
+  );
+[0m23:24:22.284355 [debug] [Thread-1 (]: Began executing node test.weather_lab.not_null_stg_observations_city.82496b7b7b
+[0m23:24:22.290330 [debug] [Thread-2 (]: Began executing node test.weather_lab.not_null_stg_observations_valid_time.43830f9520
+[0m23:24:22.293491 [debug] [Thread-3 (]: Writing runtime sql for node "test.weather_lab.dbt_utils_unique_combination_of_columns_stg_observations_city__valid_time.3812616f84"
+[0m23:24:22.294722 [debug] [Thread-1 (]: Writing runtime sql for node "test.weather_lab.not_null_stg_observations_city.82496b7b7b"
+[0m23:24:22.296571 [debug] [Thread-2 (]: Writing runtime sql for node "test.weather_lab.not_null_stg_observations_valid_time.43830f9520"
+[0m23:24:22.296807 [debug] [Thread-4 (]: SQL status: CREATE VIEW in 0.003 seconds
+[0m23:24:22.297489 [debug] [Thread-3 (]: Using postgres connection "test.weather_lab.dbt_utils_unique_combination_of_columns_stg_observations_city__valid_time.3812616f84"
+[0m23:24:22.297782 [debug] [Thread-1 (]: Using postgres connection "test.weather_lab.not_null_stg_observations_city.82496b7b7b"
+[0m23:24:22.347834 [debug] [Thread-4 (]: Using postgres connection "model.weather_lab.stg_cities"
+[0m23:24:22.348224 [debug] [Thread-3 (]: On test.weather_lab.dbt_utils_unique_combination_of_columns_stg_observations_city__valid_time.3812616f84: BEGIN
+[0m23:24:22.348583 [debug] [Thread-2 (]: Using postgres connection "test.weather_lab.not_null_stg_observations_valid_time.43830f9520"
+[0m23:24:22.348839 [debug] [Thread-1 (]: On test.weather_lab.not_null_stg_observations_city.82496b7b7b: BEGIN
+[0m23:24:22.349081 [debug] [Thread-4 (]: On model.weather_lab.stg_cities: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "node_id": "model.weather_lab.stg_cities"} */
+alter table "airflow"."analytics_staging"."stg_cities" rename to "stg_cities__dbt_backup"
+[0m23:24:22.349323 [debug] [Thread-3 (]: Opening a new connection, currently in state closed
+[0m23:24:22.349563 [debug] [Thread-2 (]: On test.weather_lab.not_null_stg_observations_valid_time.43830f9520: BEGIN
+[0m23:24:22.349802 [debug] [Thread-1 (]: Opening a new connection, currently in state closed
+[0m23:24:22.350207 [debug] [Thread-2 (]: Opening a new connection, currently in state closed
+[0m23:24:22.350596 [debug] [Thread-4 (]: SQL status: ALTER TABLE in 0.001 seconds
+[0m23:24:22.352364 [debug] [Thread-4 (]: Using postgres connection "model.weather_lab.stg_cities"
+[0m23:24:22.352604 [debug] [Thread-4 (]: On model.weather_lab.stg_cities: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "node_id": "model.weather_lab.stg_cities"} */
+alter table "airflow"."analytics_staging"."stg_cities__dbt_tmp" rename to "stg_cities"
+[0m23:24:22.353196 [debug] [Thread-4 (]: SQL status: ALTER TABLE in 0.000 seconds
+[0m23:24:22.353935 [debug] [Thread-4 (]: On model.weather_lab.stg_cities: COMMIT
+[0m23:24:22.354260 [debug] [Thread-4 (]: Using postgres connection "model.weather_lab.stg_cities"
+[0m23:24:22.354470 [debug] [Thread-3 (]: SQL status: BEGIN in 0.005 seconds
+[0m23:24:22.354748 [debug] [Thread-1 (]: SQL status: BEGIN in 0.005 seconds
+[0m23:24:22.354969 [debug] [Thread-4 (]: On model.weather_lab.stg_cities: COMMIT
+[0m23:24:22.355156 [debug] [Thread-2 (]: SQL status: BEGIN in 0.005 seconds
+[0m23:24:22.355430 [debug] [Thread-3 (]: Using postgres connection "test.weather_lab.dbt_utils_unique_combination_of_columns_stg_observations_city__valid_time.3812616f84"
+[0m23:24:22.355668 [debug] [Thread-1 (]: Using postgres connection "test.weather_lab.not_null_stg_observations_city.82496b7b7b"
+[0m23:24:22.355955 [debug] [Thread-2 (]: Using postgres connection "test.weather_lab.not_null_stg_observations_valid_time.43830f9520"
+[0m23:24:22.356192 [debug] [Thread-3 (]: On test.weather_lab.dbt_utils_unique_combination_of_columns_stg_observations_city__valid_time.3812616f84: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "node_id": "test.weather_lab.dbt_utils_unique_combination_of_columns_stg_observations_city__valid_time.3812616f84"} */
+
+    select
+      count(*) as failures,
+      count(*) != 0 as should_warn,
+      count(*) != 0 as should_error
+    from (
+      
+    
+  
+
+
+
+
+
+with validation_errors as (
+
+    select
+        city, valid_time
+    from "airflow"."analytics_staging"."stg_observations"
+    group by city, valid_time
+    having count(*) > 1
+
+)
+
+select *
+from validation_errors
+
+
+
+  
+  
+      
+    ) dbt_internal_test
+[0m23:24:22.356459 [debug] [Thread-1 (]: On test.weather_lab.not_null_stg_observations_city.82496b7b7b: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "node_id": "test.weather_lab.not_null_stg_observations_city.82496b7b7b"} */
+
+    select
+      count(*) as failures,
+      count(*) != 0 as should_warn,
+      count(*) != 0 as should_error
+    from (
+      
+    
+  
+    
+    
+
+
+
+select city
+from "airflow"."analytics_staging"."stg_observations"
+where city is null
+
+
+
+  
+  
+      
+    ) dbt_internal_test
+[0m23:24:22.356748 [debug] [Thread-2 (]: On test.weather_lab.not_null_stg_observations_valid_time.43830f9520: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "node_id": "test.weather_lab.not_null_stg_observations_valid_time.43830f9520"} */
+
+    select
+      count(*) as failures,
+      count(*) != 0 as should_warn,
+      count(*) != 0 as should_error
+    from (
+      
+    
+  
+    
+    
+
+
+
+select valid_time
+from "airflow"."analytics_staging"."stg_observations"
+where valid_time is null
+
+
+
+  
+  
+      
+    ) dbt_internal_test
+[0m23:24:22.357441 [debug] [Thread-4 (]: SQL status: COMMIT in 0.002 seconds
+[0m23:24:22.358647 [debug] [Thread-4 (]: Applying DROP to: "airflow"."analytics_staging"."stg_cities__dbt_backup"
+[0m23:24:22.358893 [debug] [Thread-1 (]: SQL status: SELECT 1 in 0.002 seconds
+[0m23:24:22.359106 [debug] [Thread-2 (]: SQL status: SELECT 1 in 0.002 seconds
+[0m23:24:22.359453 [debug] [Thread-4 (]: Using postgres connection "model.weather_lab.stg_cities"
+[0m23:24:22.361317 [debug] [Thread-1 (]: On test.weather_lab.not_null_stg_observations_city.82496b7b7b: ROLLBACK
+[0m23:24:22.361571 [debug] [Thread-3 (]: SQL status: SELECT 1 in 0.005 seconds
+[0m23:24:22.362354 [debug] [Thread-2 (]: On test.weather_lab.not_null_stg_observations_valid_time.43830f9520: ROLLBACK
+[0m23:24:22.362591 [debug] [Thread-4 (]: On model.weather_lab.stg_cities: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "node_id": "model.weather_lab.stg_cities"} */
+drop view if exists "airflow"."analytics_staging"."stg_cities__dbt_backup" cascade
+[0m23:24:22.363428 [debug] [Thread-3 (]: On test.weather_lab.dbt_utils_unique_combination_of_columns_stg_observations_city__valid_time.3812616f84: ROLLBACK
+[0m23:24:22.363639 [debug] [Thread-1 (]: On test.weather_lab.not_null_stg_observations_city.82496b7b7b: Close
+[0m23:24:22.363952 [debug] [Thread-2 (]: On test.weather_lab.not_null_stg_observations_valid_time.43830f9520: Close
+[0m23:24:22.364336 [debug] [Thread-3 (]: On test.weather_lab.dbt_utils_unique_combination_of_columns_stg_observations_city__valid_time.3812616f84: Close
+[0m23:24:22.364803 [info ] [Thread-1 (]: 6 of 18 PASS not_null_stg_observations_city .................................... [[32mPASS[0m in 0.10s]
+[0m23:24:22.365163 [info ] [Thread-2 (]: 7 of 18 PASS not_null_stg_observations_valid_time .............................. [[32mPASS[0m in 0.10s]
+[0m23:24:22.365923 [debug] [Thread-1 (]: Finished running node test.weather_lab.not_null_stg_observations_city.82496b7b7b
+[0m23:24:22.365598 [info ] [Thread-3 (]: 5 of 18 PASS dbt_utils_unique_combination_of_columns_stg_observations_city__valid_time  [[32mPASS[0m in 0.10s]
+[0m23:24:22.366309 [debug] [Thread-2 (]: Finished running node test.weather_lab.not_null_stg_observations_valid_time.43830f9520
+[0m23:24:22.366567 [debug] [Thread-1 (]: Began running node test.weather_lab.not_null_stg_forecasts_city.7c2476eeb4
+[0m23:24:22.366808 [debug] [Thread-4 (]: SQL status: DROP VIEW in 0.003 seconds
+[0m23:24:22.367179 [debug] [Thread-3 (]: Finished running node test.weather_lab.dbt_utils_unique_combination_of_columns_stg_observations_city__valid_time.3812616f84
+[0m23:24:22.367425 [debug] [Thread-2 (]: Began running node test.weather_lab.not_null_stg_forecasts_model_run.eea4bedb72
+[0m23:24:22.367722 [info ] [Thread-1 (]: 8 of 18 START test not_null_stg_forecasts_city ................................. [RUN]
+[0m23:24:22.368507 [debug] [Thread-4 (]: On model.weather_lab.stg_cities: Close
+[0m23:24:22.369000 [info ] [Thread-2 (]: 9 of 18 START test not_null_stg_forecasts_model_run ............................ [RUN]
+[0m23:24:22.369260 [debug] [Thread-3 (]: Began running node model.weather_lab.dim_city
+[0m23:24:22.369505 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly test.weather_lab.not_null_stg_observations_city.82496b7b7b, now test.weather_lab.not_null_stg_forecasts_city.7c2476eeb4)
+[0m23:24:22.369806 [debug] [Thread-2 (]: Re-using an available connection from the pool (formerly test.weather_lab.not_null_stg_observations_valid_time.43830f9520, now test.weather_lab.not_null_stg_forecasts_model_run.eea4bedb72)
+[0m23:24:22.370083 [debug] [Thread-4 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': 'ceab84f3-aed0-4679-949a-5fdfee419049', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7ff4a63921b0>]}
+[0m23:24:22.370392 [info ] [Thread-3 (]: 10 of 18 START sql table model analytics_mart.dim_city ......................... [RUN]
+[0m23:24:22.370676 [debug] [Thread-1 (]: Began compiling node test.weather_lab.not_null_stg_forecasts_city.7c2476eeb4
+[0m23:24:22.370893 [debug] [Thread-2 (]: Began compiling node test.weather_lab.not_null_stg_forecasts_model_run.eea4bedb72
+[0m23:24:22.371253 [info ] [Thread-4 (]: 4 of 18 OK created sql view model analytics_staging.stg_cities ................. [[32mCREATE VIEW[0m in 0.11s]
+[0m23:24:22.371525 [debug] [Thread-3 (]: Re-using an available connection from the pool (formerly test.weather_lab.dbt_utils_unique_combination_of_columns_stg_observations_city__valid_time.3812616f84, now model.weather_lab.dim_city)
+[0m23:24:22.373720 [debug] [Thread-1 (]: Writing injected SQL for node "test.weather_lab.not_null_stg_forecasts_city.7c2476eeb4"
+[0m23:24:22.375729 [debug] [Thread-2 (]: Writing injected SQL for node "test.weather_lab.not_null_stg_forecasts_model_run.eea4bedb72"
+[0m23:24:22.376060 [debug] [Thread-4 (]: Finished running node model.weather_lab.stg_cities
+[0m23:24:22.376299 [debug] [Thread-3 (]: Began compiling node model.weather_lab.dim_city
+[0m23:24:22.377149 [debug] [Thread-4 (]: Began running node test.weather_lab.not_null_stg_cities_city.b077ab056e
+[0m23:24:22.377358 [debug] [Thread-1 (]: Began executing node test.weather_lab.not_null_stg_forecasts_city.7c2476eeb4
+[0m23:24:22.378730 [debug] [Thread-3 (]: Writing injected SQL for node "model.weather_lab.dim_city"
+[0m23:24:22.379015 [info ] [Thread-4 (]: 11 of 18 START test not_null_stg_cities_city ................................... [RUN]
+[0m23:24:22.379385 [debug] [Thread-2 (]: Began executing node test.weather_lab.not_null_stg_forecasts_model_run.eea4bedb72
+[0m23:24:22.380583 [debug] [Thread-1 (]: Writing runtime sql for node "test.weather_lab.not_null_stg_forecasts_city.7c2476eeb4"
+[0m23:24:22.380911 [debug] [Thread-4 (]: Re-using an available connection from the pool (formerly model.weather_lab.stg_cities, now test.weather_lab.not_null_stg_cities_city.b077ab056e)
+[0m23:24:22.382021 [debug] [Thread-2 (]: Writing runtime sql for node "test.weather_lab.not_null_stg_forecasts_model_run.eea4bedb72"
+[0m23:24:22.382232 [debug] [Thread-3 (]: Began executing node model.weather_lab.dim_city
+[0m23:24:22.382577 [debug] [Thread-4 (]: Began compiling node test.weather_lab.not_null_stg_cities_city.b077ab056e
+[0m23:24:22.382979 [debug] [Thread-1 (]: Using postgres connection "test.weather_lab.not_null_stg_forecasts_city.7c2476eeb4"
+[0m23:24:22.393860 [debug] [Thread-2 (]: Using postgres connection "test.weather_lab.not_null_stg_forecasts_model_run.eea4bedb72"
+[0m23:24:22.395215 [debug] [Thread-3 (]: Writing runtime sql for node "model.weather_lab.dim_city"
+[0m23:24:22.397169 [debug] [Thread-4 (]: Writing injected SQL for node "test.weather_lab.not_null_stg_cities_city.b077ab056e"
+[0m23:24:22.397433 [debug] [Thread-1 (]: On test.weather_lab.not_null_stg_forecasts_city.7c2476eeb4: BEGIN
+[0m23:24:22.397681 [debug] [Thread-2 (]: On test.weather_lab.not_null_stg_forecasts_model_run.eea4bedb72: BEGIN
+[0m23:24:22.398101 [debug] [Thread-1 (]: Opening a new connection, currently in state closed
+[0m23:24:22.398397 [debug] [Thread-2 (]: Opening a new connection, currently in state closed
+[0m23:24:22.398641 [debug] [Thread-3 (]: Using postgres connection "model.weather_lab.dim_city"
+[0m23:24:22.398893 [debug] [Thread-4 (]: Began executing node test.weather_lab.not_null_stg_cities_city.b077ab056e
+[0m23:24:22.399286 [debug] [Thread-3 (]: On model.weather_lab.dim_city: BEGIN
+[0m23:24:22.400390 [debug] [Thread-4 (]: Writing runtime sql for node "test.weather_lab.not_null_stg_cities_city.b077ab056e"
+[0m23:24:22.400660 [debug] [Thread-3 (]: Opening a new connection, currently in state closed
+[0m23:24:22.401113 [debug] [Thread-4 (]: Using postgres connection "test.weather_lab.not_null_stg_cities_city.b077ab056e"
+[0m23:24:22.401316 [debug] [Thread-4 (]: On test.weather_lab.not_null_stg_cities_city.b077ab056e: BEGIN
+[0m23:24:22.401489 [debug] [Thread-4 (]: Opening a new connection, currently in state closed
+[0m23:24:22.403129 [debug] [Thread-2 (]: SQL status: BEGIN in 0.005 seconds
+[0m23:24:22.403355 [debug] [Thread-1 (]: SQL status: BEGIN in 0.005 seconds
+[0m23:24:22.403593 [debug] [Thread-2 (]: Using postgres connection "test.weather_lab.not_null_stg_forecasts_model_run.eea4bedb72"
+[0m23:24:22.403831 [debug] [Thread-1 (]: Using postgres connection "test.weather_lab.not_null_stg_forecasts_city.7c2476eeb4"
+[0m23:24:22.404088 [debug] [Thread-2 (]: On test.weather_lab.not_null_stg_forecasts_model_run.eea4bedb72: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "node_id": "test.weather_lab.not_null_stg_forecasts_model_run.eea4bedb72"} */
+
+    select
+      count(*) as failures,
+      count(*) != 0 as should_warn,
+      count(*) != 0 as should_error
+    from (
+      
+    
+  
+    
+    
+
+
+
+select model_run
+from "airflow"."analytics_staging"."stg_forecasts"
+where model_run is null
+
+
+
+  
+  
+      
+    ) dbt_internal_test
+[0m23:24:22.404381 [debug] [Thread-1 (]: On test.weather_lab.not_null_stg_forecasts_city.7c2476eeb4: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "node_id": "test.weather_lab.not_null_stg_forecasts_city.7c2476eeb4"} */
+
+    select
+      count(*) as failures,
+      count(*) != 0 as should_warn,
+      count(*) != 0 as should_error
+    from (
+      
+    
+  
+    
+    
+
+
+
+select city
+from "airflow"."analytics_staging"."stg_forecasts"
+where city is null
+
+
+
+  
+  
+      
+    ) dbt_internal_test
+[0m23:24:22.404667 [debug] [Thread-3 (]: SQL status: BEGIN in 0.004 seconds
+[0m23:24:22.405006 [debug] [Thread-3 (]: Using postgres connection "model.weather_lab.dim_city"
+[0m23:24:22.405210 [debug] [Thread-4 (]: SQL status: BEGIN in 0.004 seconds
+[0m23:24:22.405445 [debug] [Thread-3 (]: On model.weather_lab.dim_city: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "node_id": "model.weather_lab.dim_city"} */
+
+  
+    
+
+  create  table "airflow"."analytics_mart"."dim_city__dbt_tmp"
+  
+  
+    as
+  
+  (
+    
+select distinct city from "airflow"."analytics_staging"."stg_observations"
+  );
+  
+[0m23:24:22.405676 [debug] [Thread-4 (]: Using postgres connection "test.weather_lab.not_null_stg_cities_city.b077ab056e"
+[0m23:24:22.405966 [debug] [Thread-4 (]: On test.weather_lab.not_null_stg_cities_city.b077ab056e: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "node_id": "test.weather_lab.not_null_stg_cities_city.b077ab056e"} */
+
+    select
+      count(*) as failures,
+      count(*) != 0 as should_warn,
+      count(*) != 0 as should_error
+    from (
+      
+    
+  
+    
+    
+
+
+
+select city
+from "airflow"."analytics_staging"."stg_cities"
+where city is null
+
+
+
+  
+  
+      
+    ) dbt_internal_test
+[0m23:24:22.406189 [debug] [Thread-1 (]: SQL status: SELECT 1 in 0.001 seconds
+[0m23:24:22.407123 [debug] [Thread-1 (]: On test.weather_lab.not_null_stg_forecasts_city.7c2476eeb4: ROLLBACK
+[0m23:24:22.407358 [debug] [Thread-4 (]: SQL status: SELECT 1 in 0.001 seconds
+[0m23:24:22.407569 [debug] [Thread-2 (]: SQL status: SELECT 1 in 0.003 seconds
+[0m23:24:22.408414 [debug] [Thread-4 (]: On test.weather_lab.not_null_stg_cities_city.b077ab056e: ROLLBACK
+[0m23:24:22.408662 [debug] [Thread-1 (]: On test.weather_lab.not_null_stg_forecasts_city.7c2476eeb4: Close
+[0m23:24:22.409424 [debug] [Thread-2 (]: On test.weather_lab.not_null_stg_forecasts_model_run.eea4bedb72: ROLLBACK
+[0m23:24:22.409764 [debug] [Thread-4 (]: On test.weather_lab.not_null_stg_cities_city.b077ab056e: Close
+[0m23:24:22.410146 [info ] [Thread-1 (]: 8 of 18 PASS not_null_stg_forecasts_city ....................................... [[32mPASS[0m in 0.04s]
+[0m23:24:22.410433 [debug] [Thread-2 (]: On test.weather_lab.not_null_stg_forecasts_model_run.eea4bedb72: Close
+[0m23:24:22.411074 [debug] [Thread-1 (]: Finished running node test.weather_lab.not_null_stg_forecasts_city.7c2476eeb4
+[0m23:24:22.410756 [info ] [Thread-4 (]: 11 of 18 PASS not_null_stg_cities_city ......................................... [[32mPASS[0m in 0.03s]
+[0m23:24:22.411448 [debug] [Thread-1 (]: Began running node test.weather_lab.unique_stg_cities_city.ba1f10f703
+[0m23:24:22.411783 [info ] [Thread-2 (]: 9 of 18 PASS not_null_stg_forecasts_model_run .................................. [[32mPASS[0m in 0.04s]
+[0m23:24:22.412210 [debug] [Thread-4 (]: Finished running node test.weather_lab.not_null_stg_cities_city.b077ab056e
+[0m23:24:22.412446 [info ] [Thread-1 (]: 12 of 18 START test unique_stg_cities_city ..................................... [RUN]
+[0m23:24:22.412848 [debug] [Thread-2 (]: Finished running node test.weather_lab.not_null_stg_forecasts_model_run.eea4bedb72
+[0m23:24:22.413202 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly test.weather_lab.not_null_stg_forecasts_city.7c2476eeb4, now test.weather_lab.unique_stg_cities_city.ba1f10f703)
+[0m23:24:22.413643 [debug] [Thread-3 (]: SQL status: SELECT 1 in 0.008 seconds
+[0m23:24:22.413850 [debug] [Thread-1 (]: Began compiling node test.weather_lab.unique_stg_cities_city.ba1f10f703
+[0m23:24:22.414083 [debug] [Thread-4 (]: Began running node model.weather_lab.fct_hourly_errors
+[0m23:24:22.417670 [debug] [Thread-3 (]: Using postgres connection "model.weather_lab.dim_city"
+[0m23:24:22.420819 [debug] [Thread-1 (]: Writing injected SQL for node "test.weather_lab.unique_stg_cities_city.ba1f10f703"
+[0m23:24:22.421206 [info ] [Thread-4 (]: 13 of 18 START sql incremental model analytics_mart.fct_hourly_errors .......... [RUN]
+[0m23:24:22.421539 [debug] [Thread-3 (]: On model.weather_lab.dim_city: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "node_id": "model.weather_lab.dim_city"} */
+alter table "airflow"."analytics_mart"."dim_city" rename to "dim_city__dbt_backup"
+[0m23:24:22.421886 [debug] [Thread-4 (]: Re-using an available connection from the pool (formerly test.weather_lab.not_null_stg_cities_city.b077ab056e, now model.weather_lab.fct_hourly_errors)
+[0m23:24:22.422164 [debug] [Thread-1 (]: Began executing node test.weather_lab.unique_stg_cities_city.ba1f10f703
+[0m23:24:22.422397 [debug] [Thread-4 (]: Began compiling node model.weather_lab.fct_hourly_errors
+[0m23:24:22.422612 [debug] [Thread-3 (]: SQL status: ALTER TABLE in 0.000 seconds
+[0m23:24:22.423718 [debug] [Thread-1 (]: Writing runtime sql for node "test.weather_lab.unique_stg_cities_city.ba1f10f703"
+[0m23:24:22.427811 [debug] [Thread-4 (]: Writing injected SQL for node "model.weather_lab.fct_hourly_errors"
+[0m23:24:22.429426 [debug] [Thread-3 (]: Using postgres connection "model.weather_lab.dim_city"
+[0m23:24:22.429929 [debug] [Thread-3 (]: On model.weather_lab.dim_city: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "node_id": "model.weather_lab.dim_city"} */
+alter table "airflow"."analytics_mart"."dim_city__dbt_tmp" rename to "dim_city"
+[0m23:24:22.430204 [debug] [Thread-1 (]: Using postgres connection "test.weather_lab.unique_stg_cities_city.ba1f10f703"
+[0m23:24:22.430524 [debug] [Thread-4 (]: Began executing node model.weather_lab.fct_hourly_errors
+[0m23:24:22.430732 [debug] [Thread-1 (]: On test.weather_lab.unique_stg_cities_city.ba1f10f703: BEGIN
+[0m23:24:22.430980 [debug] [Thread-3 (]: SQL status: ALTER TABLE in 0.001 seconds
+[0m23:24:22.441828 [debug] [Thread-1 (]: Opening a new connection, currently in state closed
+[0m23:24:22.448244 [debug] [Thread-4 (]: Using postgres connection "model.weather_lab.fct_hourly_errors"
+[0m23:24:22.449128 [debug] [Thread-3 (]: On model.weather_lab.dim_city: COMMIT
+[0m23:24:22.449529 [debug] [Thread-4 (]: On model.weather_lab.fct_hourly_errors: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "node_id": "model.weather_lab.fct_hourly_errors"} */
+
+    
+  
+    
+
+  create temporary table "fct_hourly_errors__dbt_tmp232422444308"
+  
+  
+    as
+  
+  (
+    -- depends_on: "airflow"."analytics_staging"."stg_observations"
+-- depends_on: "airflow"."analytics_staging"."stg_forecasts"
+
+
+
+with obs as (
+  select city, valid_time, temp_c, precip_mm
+  from "airflow"."analytics_staging"."stg_observations"
+  
+    where valid_time > (
+      select coalesce(max(valid_time), '1900-01-01'::timestamptz) from "airflow"."analytics_mart"."fct_hourly_errors"
+    )
+  
+),
+latest_fcst as (
+  select *
+  from (
+    select
+      city,
+      valid_time,
+      model_run,
+      temp_c_forecast,
+      precip_mm_forecast,
+      row_number() over (
+        partition by city, valid_time
+        order by model_run desc
+      ) as rn
+    from "airflow"."analytics_staging"."stg_forecasts"
+  ) f
+  where rn = 1
+)
+
+select
+  o.city,
+  o.valid_time,
+  o.temp_c,
+  o.precip_mm,
+  f.model_run,
+  f.temp_c_forecast,
+  f.precip_mm_forecast,
+  abs(f.temp_c_forecast - o.temp_c)        as abs_temp_err,
+  abs(f.precip_mm_forecast - o.precip_mm)  as abs_precip_err
+from obs o
+left join latest_fcst f
+  on  f.city = o.city
+  and f.valid_time = o.valid_time
+  );
+  
+  
+[0m23:24:22.449813 [debug] [Thread-3 (]: Using postgres connection "model.weather_lab.dim_city"
+[0m23:24:22.450054 [debug] [Thread-4 (]: Opening a new connection, currently in state closed
+[0m23:24:22.450297 [debug] [Thread-3 (]: On model.weather_lab.dim_city: COMMIT
+[0m23:24:22.452840 [debug] [Thread-3 (]: SQL status: COMMIT in 0.002 seconds
+[0m23:24:22.454107 [debug] [Thread-3 (]: Applying DROP to: "airflow"."analytics_mart"."dim_city__dbt_backup"
+[0m23:24:22.456112 [debug] [Thread-3 (]: Using postgres connection "model.weather_lab.dim_city"
+[0m23:24:22.456326 [debug] [Thread-1 (]: SQL status: BEGIN in 0.014 seconds
+[0m23:24:22.456596 [debug] [Thread-3 (]: On model.weather_lab.dim_city: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "node_id": "model.weather_lab.dim_city"} */
+drop table if exists "airflow"."analytics_mart"."dim_city__dbt_backup" cascade
+[0m23:24:22.456833 [debug] [Thread-1 (]: Using postgres connection "test.weather_lab.unique_stg_cities_city.ba1f10f703"
+[0m23:24:22.457122 [debug] [Thread-1 (]: On test.weather_lab.unique_stg_cities_city.ba1f10f703: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "node_id": "test.weather_lab.unique_stg_cities_city.ba1f10f703"} */
+
+    select
+      count(*) as failures,
+      count(*) != 0 as should_warn,
+      count(*) != 0 as should_error
+    from (
+      
+    
+  
+    
+    
+
+select
+    city as unique_field,
+    count(*) as n_records
+
+from "airflow"."analytics_staging"."stg_cities"
+where city is not null
+group by city
+having count(*) > 1
+
+
+
+  
+  
+      
+    ) dbt_internal_test
+[0m23:24:22.459218 [debug] [Thread-1 (]: SQL status: SELECT 1 in 0.002 seconds
+[0m23:24:22.460079 [debug] [Thread-1 (]: On test.weather_lab.unique_stg_cities_city.ba1f10f703: ROLLBACK
+[0m23:24:22.460328 [debug] [Thread-3 (]: SQL status: DROP TABLE in 0.003 seconds
+[0m23:24:22.461180 [debug] [Thread-3 (]: On model.weather_lab.dim_city: Close
+[0m23:24:22.461388 [debug] [Thread-1 (]: On test.weather_lab.unique_stg_cities_city.ba1f10f703: Close
+[0m23:24:22.461769 [debug] [Thread-3 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': 'ceab84f3-aed0-4679-949a-5fdfee419049', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7ff4a5b3c2f0>]}
+[0m23:24:22.462132 [info ] [Thread-1 (]: 12 of 18 PASS unique_stg_cities_city ........................................... [[32mPASS[0m in 0.05s]
+[0m23:24:22.462493 [info ] [Thread-3 (]: 10 of 18 OK created sql table model analytics_mart.dim_city .................... [[32mSELECT 1[0m in 0.09s]
+[0m23:24:22.462922 [debug] [Thread-1 (]: Finished running node test.weather_lab.unique_stg_cities_city.ba1f10f703
+[0m23:24:22.463241 [debug] [Thread-3 (]: Finished running node model.weather_lab.dim_city
+[0m23:24:22.463770 [debug] [Thread-2 (]: Began running node test.weather_lab.not_null_dim_city_city.add65bb427
+[0m23:24:22.463996 [info ] [Thread-2 (]: 14 of 18 START test not_null_dim_city_city ..................................... [RUN]
+[0m23:24:22.464272 [debug] [Thread-2 (]: Re-using an available connection from the pool (formerly test.weather_lab.not_null_stg_forecasts_model_run.eea4bedb72, now test.weather_lab.not_null_dim_city_city.add65bb427)
+[0m23:24:22.464476 [debug] [Thread-2 (]: Began compiling node test.weather_lab.not_null_dim_city_city.add65bb427
+[0m23:24:22.466713 [debug] [Thread-2 (]: Writing injected SQL for node "test.weather_lab.not_null_dim_city_city.add65bb427"
+[0m23:24:22.467060 [debug] [Thread-2 (]: Began executing node test.weather_lab.not_null_dim_city_city.add65bb427
+[0m23:24:22.468217 [debug] [Thread-2 (]: Writing runtime sql for node "test.weather_lab.not_null_dim_city_city.add65bb427"
+[0m23:24:22.468450 [debug] [Thread-4 (]: SQL status: SELECT 24 in 0.018 seconds
+[0m23:24:22.475460 [debug] [Thread-4 (]: Using postgres connection "model.weather_lab.fct_hourly_errors"
+[0m23:24:22.475714 [debug] [Thread-4 (]: On model.weather_lab.fct_hourly_errors: BEGIN
+[0m23:24:22.475968 [debug] [Thread-2 (]: Using postgres connection "test.weather_lab.not_null_dim_city_city.add65bb427"
+[0m23:24:22.476220 [debug] [Thread-2 (]: On test.weather_lab.not_null_dim_city_city.add65bb427: BEGIN
+[0m23:24:22.476417 [debug] [Thread-4 (]: SQL status: BEGIN in 0.000 seconds
+[0m23:24:22.476656 [debug] [Thread-2 (]: Opening a new connection, currently in state closed
+[0m23:24:22.476887 [debug] [Thread-4 (]: Using postgres connection "model.weather_lab.fct_hourly_errors"
+[0m23:24:22.477215 [debug] [Thread-4 (]: On model.weather_lab.fct_hourly_errors: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "node_id": "model.weather_lab.fct_hourly_errors"} */
+
+      select
+          column_name,
+          data_type,
+          character_maximum_length,
+          numeric_precision,
+          numeric_scale
+
+      from INFORMATION_SCHEMA.columns
+      where table_name = 'fct_hourly_errors__dbt_tmp232422444308'
+        
+      order by ordinal_position
+
+  
+[0m23:24:22.480853 [debug] [Thread-2 (]: SQL status: BEGIN in 0.004 seconds
+[0m23:24:22.481059 [debug] [Thread-2 (]: Using postgres connection "test.weather_lab.not_null_dim_city_city.add65bb427"
+[0m23:24:22.481244 [debug] [Thread-2 (]: On test.weather_lab.not_null_dim_city_city.add65bb427: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "node_id": "test.weather_lab.not_null_dim_city_city.add65bb427"} */
+
+    select
+      count(*) as failures,
+      count(*) != 0 as should_warn,
+      count(*) != 0 as should_error
+    from (
+      
+    
+  
+    
+    
+
+
+
+select city
+from "airflow"."analytics_mart"."dim_city"
+where city is null
+
+
+
+  
+  
+      
+    ) dbt_internal_test
+[0m23:24:22.482255 [debug] [Thread-2 (]: SQL status: SELECT 1 in 0.001 seconds
+[0m23:24:22.483099 [debug] [Thread-2 (]: On test.weather_lab.not_null_dim_city_city.add65bb427: ROLLBACK
+[0m23:24:22.483379 [debug] [Thread-2 (]: On test.weather_lab.not_null_dim_city_city.add65bb427: Close
+[0m23:24:22.483726 [info ] [Thread-2 (]: 14 of 18 PASS not_null_dim_city_city ........................................... [[32mPASS[0m in 0.02s]
+[0m23:24:22.484033 [debug] [Thread-2 (]: Finished running node test.weather_lab.not_null_dim_city_city.add65bb427
+[0m23:24:22.488566 [debug] [Thread-4 (]: SQL status: SELECT 9 in 0.011 seconds
+[0m23:24:22.491278 [debug] [Thread-4 (]: Using postgres connection "model.weather_lab.fct_hourly_errors"
+[0m23:24:22.491495 [debug] [Thread-4 (]: On model.weather_lab.fct_hourly_errors: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "node_id": "model.weather_lab.fct_hourly_errors"} */
+
+      select
+          column_name,
+          data_type,
+          character_maximum_length,
+          numeric_precision,
+          numeric_scale
+
+      from "airflow".INFORMATION_SCHEMA.columns
+      where table_name = 'fct_hourly_errors'
+        
+        and table_schema = 'analytics_mart'
+        
+      order by ordinal_position
+
+  
+[0m23:24:22.494705 [debug] [Thread-4 (]: SQL status: SELECT 9 in 0.003 seconds
+[0m23:24:22.501790 [debug] [Thread-4 (]: Using postgres connection "model.weather_lab.fct_hourly_errors"
+[0m23:24:22.502058 [debug] [Thread-4 (]: On model.weather_lab.fct_hourly_errors: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "node_id": "model.weather_lab.fct_hourly_errors"} */
+
+      select
+          column_name,
+          data_type,
+          character_maximum_length,
+          numeric_precision,
+          numeric_scale
+
+      from INFORMATION_SCHEMA.columns
+      where table_name = 'fct_hourly_errors__dbt_tmp232422444308'
+        
+      order by ordinal_position
+
+  
+[0m23:24:22.504975 [debug] [Thread-4 (]: SQL status: SELECT 9 in 0.003 seconds
+[0m23:24:22.506716 [debug] [Thread-4 (]: Using postgres connection "model.weather_lab.fct_hourly_errors"
+[0m23:24:22.506930 [debug] [Thread-4 (]: On model.weather_lab.fct_hourly_errors: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "node_id": "model.weather_lab.fct_hourly_errors"} */
+
+      select
+          column_name,
+          data_type,
+          character_maximum_length,
+          numeric_precision,
+          numeric_scale
+
+      from "airflow".INFORMATION_SCHEMA.columns
+      where table_name = 'fct_hourly_errors'
+        
+        and table_schema = 'analytics_mart'
+        
+      order by ordinal_position
+
+  
+[0m23:24:22.509784 [debug] [Thread-4 (]: SQL status: SELECT 9 in 0.003 seconds
+[0m23:24:22.514668 [debug] [Thread-4 (]: 
+    In "airflow"."analytics_mart"."fct_hourly_errors":
+        Schema changed: False
+        Source columns not in target: []
+        Target columns not in source: []
+        New column types: []
+  
+[0m23:24:22.522443 [debug] [Thread-4 (]: Writing runtime sql for node "model.weather_lab.fct_hourly_errors"
+[0m23:24:22.522892 [debug] [Thread-4 (]: Using postgres connection "model.weather_lab.fct_hourly_errors"
+[0m23:24:22.523102 [debug] [Thread-4 (]: On model.weather_lab.fct_hourly_errors: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "node_id": "model.weather_lab.fct_hourly_errors"} */
+
+      
+        delete from "airflow"."analytics_mart"."fct_hourly_errors" as DBT_INTERNAL_DEST
+        where (city, valid_time) in (
+            select distinct city, valid_time
+            from "fct_hourly_errors__dbt_tmp232422444308" as DBT_INTERNAL_SOURCE
+        );
+
+    
+
+    insert into "airflow"."analytics_mart"."fct_hourly_errors" ("city", "valid_time", "temp_c", "precip_mm", "model_run", "temp_c_forecast", "precip_mm_forecast", "abs_temp_err", "abs_precip_err")
+    (
+        select "city", "valid_time", "temp_c", "precip_mm", "model_run", "temp_c_forecast", "precip_mm_forecast", "abs_temp_err", "abs_precip_err"
+        from "fct_hourly_errors__dbt_tmp232422444308"
+    )
+  
+[0m23:24:22.524229 [debug] [Thread-4 (]: SQL status: INSERT 0 24 in 0.001 seconds
+[0m23:24:22.525019 [debug] [Thread-4 (]: On model.weather_lab.fct_hourly_errors: COMMIT
+[0m23:24:22.525233 [debug] [Thread-4 (]: Using postgres connection "model.weather_lab.fct_hourly_errors"
+[0m23:24:22.525415 [debug] [Thread-4 (]: On model.weather_lab.fct_hourly_errors: COMMIT
+[0m23:24:22.527762 [debug] [Thread-4 (]: SQL status: COMMIT in 0.002 seconds
+[0m23:24:22.528210 [debug] [Thread-4 (]: On model.weather_lab.fct_hourly_errors: Close
+[0m23:24:22.528604 [debug] [Thread-4 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': 'ceab84f3-aed0-4679-949a-5fdfee419049', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7ff495d7bdd0>]}
+[0m23:24:22.529003 [info ] [Thread-4 (]: 13 of 18 OK created sql incremental model analytics_mart.fct_hourly_errors ..... [[32mINSERT 0 24[0m in 0.11s]
+[0m23:24:22.529436 [debug] [Thread-4 (]: Finished running node model.weather_lab.fct_hourly_errors
+[0m23:24:22.530173 [debug] [Thread-3 (]: Began running node test.weather_lab.not_null_fct_hourly_errors_city.df47019802
+[0m23:24:22.530551 [debug] [Thread-1 (]: Began running node test.weather_lab.not_null_fct_hourly_errors_valid_time.ea63d64bce
+[0m23:24:22.530801 [info ] [Thread-3 (]: 15 of 18 START test not_null_fct_hourly_errors_city ............................ [RUN]
+[0m23:24:22.531153 [info ] [Thread-1 (]: 16 of 18 START test not_null_fct_hourly_errors_valid_time ...................... [RUN]
+[0m23:24:22.531489 [debug] [Thread-3 (]: Re-using an available connection from the pool (formerly model.weather_lab.dim_city, now test.weather_lab.not_null_fct_hourly_errors_city.df47019802)
+[0m23:24:22.531793 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly test.weather_lab.unique_stg_cities_city.ba1f10f703, now test.weather_lab.not_null_fct_hourly_errors_valid_time.ea63d64bce)
+[0m23:24:22.532056 [debug] [Thread-3 (]: Began compiling node test.weather_lab.not_null_fct_hourly_errors_city.df47019802
+[0m23:24:22.532295 [debug] [Thread-1 (]: Began compiling node test.weather_lab.not_null_fct_hourly_errors_valid_time.ea63d64bce
+[0m23:24:22.534718 [debug] [Thread-3 (]: Writing injected SQL for node "test.weather_lab.not_null_fct_hourly_errors_city.df47019802"
+[0m23:24:22.538004 [debug] [Thread-1 (]: Writing injected SQL for node "test.weather_lab.not_null_fct_hourly_errors_valid_time.ea63d64bce"
+[0m23:24:22.538463 [debug] [Thread-3 (]: Began executing node test.weather_lab.not_null_fct_hourly_errors_city.df47019802
+[0m23:24:22.538682 [debug] [Thread-1 (]: Began executing node test.weather_lab.not_null_fct_hourly_errors_valid_time.ea63d64bce
+[0m23:24:22.539826 [debug] [Thread-3 (]: Writing runtime sql for node "test.weather_lab.not_null_fct_hourly_errors_city.df47019802"
+[0m23:24:22.540961 [debug] [Thread-1 (]: Writing runtime sql for node "test.weather_lab.not_null_fct_hourly_errors_valid_time.ea63d64bce"
+[0m23:24:22.541404 [debug] [Thread-3 (]: Using postgres connection "test.weather_lab.not_null_fct_hourly_errors_city.df47019802"
+[0m23:24:22.541634 [debug] [Thread-3 (]: On test.weather_lab.not_null_fct_hourly_errors_city.df47019802: BEGIN
+[0m23:24:22.541862 [debug] [Thread-1 (]: Using postgres connection "test.weather_lab.not_null_fct_hourly_errors_valid_time.ea63d64bce"
+[0m23:24:22.542084 [debug] [Thread-3 (]: Opening a new connection, currently in state closed
+[0m23:24:22.542315 [debug] [Thread-1 (]: On test.weather_lab.not_null_fct_hourly_errors_valid_time.ea63d64bce: BEGIN
+[0m23:24:22.542641 [debug] [Thread-1 (]: Opening a new connection, currently in state closed
+[0m23:24:22.546384 [debug] [Thread-3 (]: SQL status: BEGIN in 0.004 seconds
+[0m23:24:22.546660 [debug] [Thread-3 (]: Using postgres connection "test.weather_lab.not_null_fct_hourly_errors_city.df47019802"
+[0m23:24:22.546901 [debug] [Thread-1 (]: SQL status: BEGIN in 0.004 seconds
+[0m23:24:22.547176 [debug] [Thread-3 (]: On test.weather_lab.not_null_fct_hourly_errors_city.df47019802: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "node_id": "test.weather_lab.not_null_fct_hourly_errors_city.df47019802"} */
+
+    select
+      count(*) as failures,
+      count(*) != 0 as should_warn,
+      count(*) != 0 as should_error
+    from (
+      
+    
+  
+    
+    
+
+
+
+select city
+from "airflow"."analytics_mart"."fct_hourly_errors"
+where city is null
+
+
+
+  
+  
+      
+    ) dbt_internal_test
+[0m23:24:22.547417 [debug] [Thread-1 (]: Using postgres connection "test.weather_lab.not_null_fct_hourly_errors_valid_time.ea63d64bce"
+[0m23:24:22.547723 [debug] [Thread-1 (]: On test.weather_lab.not_null_fct_hourly_errors_valid_time.ea63d64bce: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "node_id": "test.weather_lab.not_null_fct_hourly_errors_valid_time.ea63d64bce"} */
+
+    select
+      count(*) as failures,
+      count(*) != 0 as should_warn,
+      count(*) != 0 as should_error
+    from (
+      
+    
+  
+    
+    
+
+
+
+select valid_time
+from "airflow"."analytics_mart"."fct_hourly_errors"
+where valid_time is null
+
+
+
+  
+  
+      
+    ) dbt_internal_test
+[0m23:24:22.548587 [debug] [Thread-3 (]: SQL status: SELECT 1 in 0.001 seconds
+[0m23:24:22.548812 [debug] [Thread-1 (]: SQL status: SELECT 1 in 0.001 seconds
+[0m23:24:22.549678 [debug] [Thread-3 (]: On test.weather_lab.not_null_fct_hourly_errors_city.df47019802: ROLLBACK
+[0m23:24:22.550457 [debug] [Thread-1 (]: On test.weather_lab.not_null_fct_hourly_errors_valid_time.ea63d64bce: ROLLBACK
+[0m23:24:22.550798 [debug] [Thread-3 (]: On test.weather_lab.not_null_fct_hourly_errors_city.df47019802: Close
+[0m23:24:22.551015 [debug] [Thread-1 (]: On test.weather_lab.not_null_fct_hourly_errors_valid_time.ea63d64bce: Close
+[0m23:24:22.551422 [info ] [Thread-3 (]: 15 of 18 PASS not_null_fct_hourly_errors_city .................................. [[32mPASS[0m in 0.02s]
+[0m23:24:22.551706 [info ] [Thread-1 (]: 16 of 18 PASS not_null_fct_hourly_errors_valid_time ............................ [[32mPASS[0m in 0.02s]
+[0m23:24:22.552166 [debug] [Thread-3 (]: Finished running node test.weather_lab.not_null_fct_hourly_errors_city.df47019802
+[0m23:24:22.552482 [debug] [Thread-1 (]: Finished running node test.weather_lab.not_null_fct_hourly_errors_valid_time.ea63d64bce
+[0m23:24:22.553138 [debug] [Thread-4 (]: Began running node model.weather_lab.daily_kpis
+[0m23:24:22.553528 [info ] [Thread-4 (]: 17 of 18 START sql table model analytics_mart.daily_kpis ....................... [RUN]
+[0m23:24:22.553773 [debug] [Thread-4 (]: Re-using an available connection from the pool (formerly model.weather_lab.fct_hourly_errors, now model.weather_lab.daily_kpis)
+[0m23:24:22.553965 [debug] [Thread-4 (]: Began compiling node model.weather_lab.daily_kpis
+[0m23:24:22.555547 [debug] [Thread-4 (]: Writing injected SQL for node "model.weather_lab.daily_kpis"
+[0m23:24:22.555878 [debug] [Thread-4 (]: Began executing node model.weather_lab.daily_kpis
+[0m23:24:22.557425 [debug] [Thread-4 (]: Writing runtime sql for node "model.weather_lab.daily_kpis"
+[0m23:24:22.557772 [debug] [Thread-4 (]: Using postgres connection "model.weather_lab.daily_kpis"
+[0m23:24:22.557966 [debug] [Thread-4 (]: On model.weather_lab.daily_kpis: BEGIN
+[0m23:24:22.558140 [debug] [Thread-4 (]: Opening a new connection, currently in state closed
+[0m23:24:22.561981 [debug] [Thread-4 (]: SQL status: BEGIN in 0.004 seconds
+[0m23:24:22.562200 [debug] [Thread-4 (]: Using postgres connection "model.weather_lab.daily_kpis"
+[0m23:24:22.562390 [debug] [Thread-4 (]: On model.weather_lab.daily_kpis: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "node_id": "model.weather_lab.daily_kpis"} */
+
+  
+    
+
+  create  table "airflow"."analytics_mart"."daily_kpis__dbt_tmp"
+  
+  
+    as
+  
+  (
+    
+select
+  city,
+  date_trunc('day', valid_time) as day,
+  avg(abs_temp_err)   as mae_temp_c,
+  avg(abs_precip_err) as mae_precip_mm
+from "airflow"."analytics_mart"."fct_hourly_errors"
+group by 1,2
+  );
+  
+[0m23:24:22.571389 [debug] [Thread-4 (]: SQL status: SELECT 37 in 0.009 seconds
+[0m23:24:22.573137 [debug] [Thread-4 (]: Using postgres connection "model.weather_lab.daily_kpis"
+[0m23:24:22.573344 [debug] [Thread-4 (]: On model.weather_lab.daily_kpis: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "node_id": "model.weather_lab.daily_kpis"} */
+alter table "airflow"."analytics_mart"."daily_kpis" rename to "daily_kpis__dbt_backup"
+[0m23:24:22.573923 [debug] [Thread-4 (]: SQL status: ALTER TABLE in 0.000 seconds
+[0m23:24:22.575390 [debug] [Thread-4 (]: Using postgres connection "model.weather_lab.daily_kpis"
+[0m23:24:22.575591 [debug] [Thread-4 (]: On model.weather_lab.daily_kpis: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "node_id": "model.weather_lab.daily_kpis"} */
+alter table "airflow"."analytics_mart"."daily_kpis__dbt_tmp" rename to "daily_kpis"
+[0m23:24:22.576072 [debug] [Thread-4 (]: SQL status: ALTER TABLE in 0.000 seconds
+[0m23:24:22.576794 [debug] [Thread-4 (]: On model.weather_lab.daily_kpis: COMMIT
+[0m23:24:22.577000 [debug] [Thread-4 (]: Using postgres connection "model.weather_lab.daily_kpis"
+[0m23:24:22.577177 [debug] [Thread-4 (]: On model.weather_lab.daily_kpis: COMMIT
+[0m23:24:22.578906 [debug] [Thread-4 (]: SQL status: COMMIT in 0.002 seconds
+[0m23:24:22.580005 [debug] [Thread-4 (]: Applying DROP to: "airflow"."analytics_mart"."daily_kpis__dbt_backup"
+[0m23:24:22.580304 [debug] [Thread-4 (]: Using postgres connection "model.weather_lab.daily_kpis"
+[0m23:24:22.580496 [debug] [Thread-4 (]: On model.weather_lab.daily_kpis: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "node_id": "model.weather_lab.daily_kpis"} */
+drop table if exists "airflow"."analytics_mart"."daily_kpis__dbt_backup" cascade
+[0m23:24:22.584045 [debug] [Thread-4 (]: SQL status: DROP TABLE in 0.003 seconds
+[0m23:24:22.585249 [debug] [Thread-4 (]: On model.weather_lab.daily_kpis: Close
+[0m23:24:22.585810 [debug] [Thread-4 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': 'ceab84f3-aed0-4679-949a-5fdfee419049', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7ff4a5b456d0>]}
+[0m23:24:22.586299 [info ] [Thread-4 (]: 17 of 18 OK created sql table model analytics_mart.daily_kpis .................. [[32mSELECT 37[0m in 0.03s]
+[0m23:24:22.586747 [debug] [Thread-4 (]: Finished running node model.weather_lab.daily_kpis
+[0m23:24:22.587461 [debug] [Thread-3 (]: Began running node test.weather_lab.not_null_daily_kpis_day.f700bd56fd
+[0m23:24:22.587728 [info ] [Thread-3 (]: 18 of 18 START test not_null_daily_kpis_day .................................... [RUN]
+[0m23:24:22.588117 [debug] [Thread-3 (]: Re-using an available connection from the pool (formerly test.weather_lab.not_null_fct_hourly_errors_city.df47019802, now test.weather_lab.not_null_daily_kpis_day.f700bd56fd)
+[0m23:24:22.588346 [debug] [Thread-3 (]: Began compiling node test.weather_lab.not_null_daily_kpis_day.f700bd56fd
+[0m23:24:22.591332 [debug] [Thread-3 (]: Writing injected SQL for node "test.weather_lab.not_null_daily_kpis_day.f700bd56fd"
+[0m23:24:22.592156 [debug] [Thread-3 (]: Began executing node test.weather_lab.not_null_daily_kpis_day.f700bd56fd
+[0m23:24:22.596562 [debug] [Thread-3 (]: Writing runtime sql for node "test.weather_lab.not_null_daily_kpis_day.f700bd56fd"
+[0m23:24:22.597150 [debug] [Thread-3 (]: Using postgres connection "test.weather_lab.not_null_daily_kpis_day.f700bd56fd"
+[0m23:24:22.597375 [debug] [Thread-3 (]: On test.weather_lab.not_null_daily_kpis_day.f700bd56fd: BEGIN
+[0m23:24:22.597574 [debug] [Thread-3 (]: Opening a new connection, currently in state closed
+[0m23:24:22.602842 [debug] [Thread-3 (]: SQL status: BEGIN in 0.005 seconds
+[0m23:24:22.603278 [debug] [Thread-3 (]: Using postgres connection "test.weather_lab.not_null_daily_kpis_day.f700bd56fd"
+[0m23:24:22.603506 [debug] [Thread-3 (]: On test.weather_lab.not_null_daily_kpis_day.f700bd56fd: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "node_id": "test.weather_lab.not_null_daily_kpis_day.f700bd56fd"} */
+
+    select
+      count(*) as failures,
+      count(*) != 0 as should_warn,
+      count(*) != 0 as should_error
+    from (
+      
+    
+  
+    
+    
+
+
+
+select day
+from "airflow"."analytics_mart"."daily_kpis"
+where day is null
+
+
+
+  
+  
+      
+    ) dbt_internal_test
+[0m23:24:22.604799 [debug] [Thread-3 (]: SQL status: SELECT 1 in 0.001 seconds
+[0m23:24:22.605903 [debug] [Thread-3 (]: On test.weather_lab.not_null_daily_kpis_day.f700bd56fd: ROLLBACK
+[0m23:24:22.606220 [debug] [Thread-3 (]: On test.weather_lab.not_null_daily_kpis_day.f700bd56fd: Close
+[0m23:24:22.606736 [info ] [Thread-3 (]: 18 of 18 PASS not_null_daily_kpis_day .......................................... [[32mPASS[0m in 0.02s]
+[0m23:24:22.607195 [debug] [Thread-3 (]: Finished running node test.weather_lab.not_null_daily_kpis_day.f700bd56fd
+[0m23:24:22.608789 [debug] [MainThread]: Using postgres connection "master"
+[0m23:24:22.609051 [debug] [MainThread]: On master: BEGIN
+[0m23:24:22.609243 [debug] [MainThread]: Opening a new connection, currently in state closed
+[0m23:24:22.613791 [debug] [MainThread]: SQL status: BEGIN in 0.004 seconds
+[0m23:24:22.614105 [debug] [MainThread]: On master: COMMIT
+[0m23:24:22.614350 [debug] [MainThread]: Using postgres connection "master"
+[0m23:24:22.614605 [debug] [MainThread]: On master: COMMIT
+[0m23:24:22.614944 [debug] [MainThread]: SQL status: COMMIT in 0.000 seconds
+[0m23:24:22.615163 [debug] [MainThread]: On master: Close
+[0m23:24:22.615490 [debug] [MainThread]: Connection 'master' was properly closed.
+[0m23:24:22.615663 [debug] [MainThread]: Connection 'test.weather_lab.not_null_fct_hourly_errors_valid_time.ea63d64bce' was properly closed.
+[0m23:24:22.615814 [debug] [MainThread]: Connection 'test.weather_lab.not_null_dim_city_city.add65bb427' was properly closed.
+[0m23:24:22.615957 [debug] [MainThread]: Connection 'test.weather_lab.not_null_daily_kpis_day.f700bd56fd' was properly closed.
+[0m23:24:22.616099 [debug] [MainThread]: Connection 'model.weather_lab.daily_kpis' was properly closed.
+[0m23:24:22.616355 [info ] [MainThread]: 
+[0m23:24:22.616624 [info ] [MainThread]: Finished running 1 incremental model, 1 seed, 2 table models, 11 data tests, 3 view models in 0 hours 0 minutes and 0.57 seconds (0.57s).
+[0m23:24:22.618193 [debug] [MainThread]: Command end result
+[0m23:24:22.636452 [debug] [MainThread]: Wrote artifact WritableManifest to ./target/manifest.json
+[0m23:24:22.637870 [debug] [MainThread]: Wrote artifact SemanticManifest to ./target/semantic_manifest.json
+[0m23:24:22.642270 [debug] [MainThread]: Wrote artifact RunExecutionResult to ./target/run_results.json
+[0m23:24:22.642514 [info ] [MainThread]: 
+[0m23:24:22.642771 [info ] [MainThread]: [32mCompleted successfully[0m
+[0m23:24:22.642978 [info ] [MainThread]: 
+[0m23:24:22.643181 [info ] [MainThread]: Done. PASS=18 WARN=0 ERROR=0 SKIP=0 NO-OP=0 TOTAL=18
+[0m23:24:22.643917 [debug] [MainThread]: Resource report: {"command_name": "build", "command_success": true, "command_wall_clock_time": 1.0766661, "process_in_blocks": "1216", "process_kernel_time": 0.279997, "process_mem_max_rss": "131624", "process_out_blocks": "2880", "process_user_time": 1.927981}
+[0m23:24:22.644230 [debug] [MainThread]: Command `dbt build` succeeded at 23:24:22.644167 after 1.08 seconds
+[0m23:24:22.644460 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7ff4a82b7e30>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7ff4a637f560>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7ff495d43fe0>]}
+[0m23:24:22.644724 [debug] [MainThread]: Flushing usage events
+[0m23:24:23.579546 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m23:24:26.865510 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7467ec1b59a0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7467ed2c5340>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7467eb043170>]}
+
+
+============================== 23:24:26.869271 | 20bdbbe9-ed2f-4369-a269-2f357ced932f ==============================
+[0m23:24:26.869271 [info ] [MainThread]: Running with dbt=1.10.9
+[0m23:24:26.869573 [debug] [MainThread]: running dbt with arguments {'warn_error': 'None', 'profiles_dir': '.', 'use_experimental_parser': 'False', 'use_colors': 'True', 'write_json': 'True', 'target_path': 'None', 'fail_fast': 'False', 'log_cache_events': 'False', 'debug': 'False', 'no_print': 'None', 'introspect': 'True', 'empty': 'None', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'cache_selected_only': 'False', 'invocation_command': 'dbt docs generate --profiles-dir . --project-dir .', 'quiet': 'False', 'log_format': 'default', 'log_path': 'logs', 'printer_width': '80', 'partial_parse': 'True', 'version_check': 'True', 'indirect_selection': 'eager', 'send_anonymous_usage_stats': 'True', 'static_parser': 'True'}
+[0m23:24:26.986192 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'project_id', 'label': '20bdbbe9-ed2f-4369-a269-2f357ced932f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7467ea1c1040>]}
+[0m23:24:27.027069 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'adapter_info', 'label': '20bdbbe9-ed2f-4369-a269-2f357ced932f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7467ebba5eb0>]}
+[0m23:24:27.027695 [info ] [MainThread]: Registered adapter: postgres=1.9.0
+[0m23:24:27.102933 [debug] [MainThread]: checksum: 6543b8b248ceda473ef0d611849d5d909085b6b714afa9b515e9635faea7af23, vars: {}, profile: , target: , version: 1.10.9
+[0m23:24:27.190314 [debug] [MainThread]: Partial parsing enabled: 0 files deleted, 0 files added, 0 files changed.
+[0m23:24:27.190606 [debug] [MainThread]: Partial parsing enabled, no changes found, skipping parsing
+[0m23:24:27.225026 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'load_project', 'label': '20bdbbe9-ed2f-4369-a269-2f357ced932f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7467e9dfacc0>]}
+[0m23:24:27.239475 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'resource_counts', 'label': '20bdbbe9-ed2f-4369-a269-2f357ced932f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7467e9160110>]}
+[0m23:24:27.239821 [info ] [MainThread]: Found 6 models, 1 seed, 11 data tests, 3 sources, 551 macros
+[0m23:24:27.240065 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': '20bdbbe9-ed2f-4369-a269-2f357ced932f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7467e8d83e30>]}
+[0m23:24:27.241448 [info ] [MainThread]: 
+[0m23:24:27.241693 [info ] [MainThread]: Concurrency: 4 threads (target='dev')
+[0m23:24:27.241875 [info ] [MainThread]: 
+[0m23:24:27.242208 [debug] [MainThread]: Acquiring new postgres connection 'master'
+[0m23:24:27.244833 [debug] [ThreadPool]: Acquiring new postgres connection 'list_airflow_analytics_staging'
+[0m23:24:27.245296 [debug] [ThreadPool]: Acquiring new postgres connection 'list_airflow_analytics_mart'
+[0m23:24:27.254505 [debug] [ThreadPool]: Acquiring new postgres connection 'list_airflow_analytics'
+[0m23:24:27.272372 [debug] [ThreadPool]: Using postgres connection "list_airflow_analytics_staging"
+[0m23:24:27.272645 [debug] [ThreadPool]: Using postgres connection "list_airflow_analytics_mart"
+[0m23:24:27.272831 [debug] [ThreadPool]: On list_airflow_analytics_staging: BEGIN
+[0m23:24:27.273006 [debug] [ThreadPool]: Using postgres connection "list_airflow_analytics"
+[0m23:24:27.273229 [debug] [ThreadPool]: On list_airflow_analytics_mart: BEGIN
+[0m23:24:27.273438 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m23:24:27.273639 [debug] [ThreadPool]: On list_airflow_analytics: BEGIN
+[0m23:24:27.273827 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m23:24:27.274160 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m23:24:27.278375 [debug] [ThreadPool]: SQL status: BEGIN in 0.005 seconds
+[0m23:24:27.278616 [debug] [ThreadPool]: SQL status: BEGIN in 0.004 seconds
+[0m23:24:27.278817 [debug] [ThreadPool]: SQL status: BEGIN in 0.005 seconds
+[0m23:24:27.279003 [debug] [ThreadPool]: Using postgres connection "list_airflow_analytics_mart"
+[0m23:24:27.279214 [debug] [ThreadPool]: Using postgres connection "list_airflow_analytics"
+[0m23:24:27.279417 [debug] [ThreadPool]: Using postgres connection "list_airflow_analytics_staging"
+[0m23:24:27.279622 [debug] [ThreadPool]: On list_airflow_analytics_mart: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "connection_name": "list_airflow_analytics_mart"} */
+select
+      'airflow' as database,
+      tablename as name,
+      schemaname as schema,
+      'table' as type
+    from pg_tables
+    where schemaname ilike 'analytics_mart'
+    union all
+    select
+      'airflow' as database,
+      viewname as name,
+      schemaname as schema,
+      'view' as type
+    from pg_views
+    where schemaname ilike 'analytics_mart'
+    union all
+    select
+      'airflow' as database,
+      matviewname as name,
+      schemaname as schema,
+      'materialized_view' as type
+    from pg_matviews
+    where schemaname ilike 'analytics_mart'
+  
+[0m23:24:27.279838 [debug] [ThreadPool]: On list_airflow_analytics: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "connection_name": "list_airflow_analytics"} */
+select
+      'airflow' as database,
+      tablename as name,
+      schemaname as schema,
+      'table' as type
+    from pg_tables
+    where schemaname ilike 'analytics'
+    union all
+    select
+      'airflow' as database,
+      viewname as name,
+      schemaname as schema,
+      'view' as type
+    from pg_views
+    where schemaname ilike 'analytics'
+    union all
+    select
+      'airflow' as database,
+      matviewname as name,
+      schemaname as schema,
+      'materialized_view' as type
+    from pg_matviews
+    where schemaname ilike 'analytics'
+  
+[0m23:24:27.280055 [debug] [ThreadPool]: On list_airflow_analytics_staging: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "connection_name": "list_airflow_analytics_staging"} */
+select
+      'airflow' as database,
+      tablename as name,
+      schemaname as schema,
+      'table' as type
+    from pg_tables
+    where schemaname ilike 'analytics_staging'
+    union all
+    select
+      'airflow' as database,
+      viewname as name,
+      schemaname as schema,
+      'view' as type
+    from pg_views
+    where schemaname ilike 'analytics_staging'
+    union all
+    select
+      'airflow' as database,
+      matviewname as name,
+      schemaname as schema,
+      'materialized_view' as type
+    from pg_matviews
+    where schemaname ilike 'analytics_staging'
+  
+[0m23:24:27.284802 [debug] [ThreadPool]: SQL status: SELECT 3 in 0.004 seconds
+[0m23:24:27.285072 [debug] [ThreadPool]: SQL status: SELECT 3 in 0.005 seconds
+[0m23:24:27.285255 [debug] [ThreadPool]: SQL status: SELECT 4 in 0.005 seconds
+[0m23:24:27.286107 [debug] [ThreadPool]: On list_airflow_analytics_staging: ROLLBACK
+[0m23:24:27.286850 [debug] [ThreadPool]: On list_airflow_analytics_mart: ROLLBACK
+[0m23:24:27.287536 [debug] [ThreadPool]: On list_airflow_analytics: ROLLBACK
+[0m23:24:27.287939 [debug] [ThreadPool]: On list_airflow_analytics_staging: Close
+[0m23:24:27.288154 [debug] [ThreadPool]: On list_airflow_analytics_mart: Close
+[0m23:24:27.288332 [debug] [ThreadPool]: On list_airflow_analytics: Close
+[0m23:24:27.292939 [debug] [MainThread]: Using postgres connection "master"
+[0m23:24:27.293142 [debug] [MainThread]: On master: BEGIN
+[0m23:24:27.293309 [debug] [MainThread]: Opening a new connection, currently in state init
+[0m23:24:27.297211 [debug] [MainThread]: SQL status: BEGIN in 0.004 seconds
+[0m23:24:27.297417 [debug] [MainThread]: Using postgres connection "master"
+[0m23:24:27.297634 [debug] [MainThread]: On master: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "connection_name": "master"} */
+with relation as (
+        select
+            pg_rewrite.ev_class as class,
+            pg_rewrite.oid as id
+        from pg_rewrite
+    ),
+    class as (
+        select
+            oid as id,
+            relname as name,
+            relnamespace as schema,
+            relkind as kind
+        from pg_class
+    ),
+    dependency as (
+        select distinct
+            pg_depend.objid as id,
+            pg_depend.refobjid as ref
+        from pg_depend
+    ),
+    schema as (
+        select
+            pg_namespace.oid as id,
+            pg_namespace.nspname as name
+        from pg_namespace
+        where nspname != 'information_schema' and nspname not like 'pg\_%'
+    ),
+    referenced as (
+        select
+            relation.id AS id,
+            referenced_class.name ,
+            referenced_class.schema ,
+            referenced_class.kind
+        from relation
+        join class as referenced_class on relation.class=referenced_class.id
+        where referenced_class.kind in ('r', 'v', 'm')
+    ),
+    relationships as (
+        select
+            referenced.name as referenced_name,
+            referenced.schema as referenced_schema_id,
+            dependent_class.name as dependent_name,
+            dependent_class.schema as dependent_schema_id,
+            referenced.kind as kind
+        from referenced
+        join dependency on referenced.id=dependency.id
+        join class as dependent_class on dependency.ref=dependent_class.id
+        where
+            (referenced.name != dependent_class.name or
+             referenced.schema != dependent_class.schema)
+    )
+
+    select
+        referenced_schema.name as referenced_schema,
+        relationships.referenced_name as referenced_name,
+        dependent_schema.name as dependent_schema,
+        relationships.dependent_name as dependent_name
+    from relationships
+    join schema as dependent_schema on relationships.dependent_schema_id=dependent_schema.id
+    join schema as referenced_schema on relationships.referenced_schema_id=referenced_schema.id
+    group by referenced_schema, referenced_name, dependent_schema, dependent_name
+    order by referenced_schema, referenced_name, dependent_schema, dependent_name;
+[0m23:24:27.313080 [debug] [MainThread]: SQL status: SELECT 6 in 0.015 seconds
+[0m23:24:27.314178 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': '20bdbbe9-ed2f-4369-a269-2f357ced932f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7467e9dad9a0>]}
+[0m23:24:27.314440 [debug] [MainThread]: On master: ROLLBACK
+[0m23:24:27.314711 [debug] [MainThread]: On master: Close
+[0m23:24:27.317551 [debug] [Thread-1 (]: Began running node model.weather_lab.stg_forecasts
+[0m23:24:27.317786 [debug] [Thread-2 (]: Began running node model.weather_lab.stg_observations
+[0m23:24:27.318039 [debug] [Thread-3 (]: Began running node seed.weather_lab.cities
+[0m23:24:27.318276 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly list_airflow_analytics_mart, now model.weather_lab.stg_forecasts)
+[0m23:24:27.318548 [debug] [Thread-2 (]: Re-using an available connection from the pool (formerly list_airflow_analytics, now model.weather_lab.stg_observations)
+[0m23:24:27.318790 [debug] [Thread-3 (]: Re-using an available connection from the pool (formerly list_airflow_analytics_staging, now seed.weather_lab.cities)
+[0m23:24:27.319036 [debug] [Thread-1 (]: Began compiling node model.weather_lab.stg_forecasts
+[0m23:24:27.319262 [debug] [Thread-2 (]: Began compiling node model.weather_lab.stg_observations
+[0m23:24:27.319489 [debug] [Thread-3 (]: Began compiling node seed.weather_lab.cities
+[0m23:24:27.323484 [debug] [Thread-1 (]: Writing injected SQL for node "model.weather_lab.stg_forecasts"
+[0m23:24:27.325035 [debug] [Thread-2 (]: Writing injected SQL for node "model.weather_lab.stg_observations"
+[0m23:24:27.326013 [debug] [Thread-3 (]: Began executing node seed.weather_lab.cities
+[0m23:24:27.326767 [debug] [Thread-3 (]: Finished running node seed.weather_lab.cities
+[0m23:24:27.327043 [debug] [Thread-1 (]: Began executing node model.weather_lab.stg_forecasts
+[0m23:24:27.327367 [debug] [Thread-2 (]: Began executing node model.weather_lab.stg_observations
+[0m23:24:27.327911 [debug] [Thread-1 (]: Finished running node model.weather_lab.stg_forecasts
+[0m23:24:27.328147 [debug] [Thread-4 (]: Began running node model.weather_lab.stg_cities
+[0m23:24:27.328691 [debug] [Thread-2 (]: Finished running node model.weather_lab.stg_observations
+[0m23:24:27.329144 [debug] [Thread-3 (]: Began running node test.weather_lab.not_null_stg_forecasts_city.7c2476eeb4
+[0m23:24:27.329402 [debug] [Thread-4 (]: Acquiring new postgres connection 'model.weather_lab.stg_cities'
+[0m23:24:27.329629 [debug] [Thread-1 (]: Began running node test.weather_lab.not_null_stg_forecasts_model_run.eea4bedb72
+[0m23:24:27.330083 [debug] [Thread-3 (]: Re-using an available connection from the pool (formerly seed.weather_lab.cities, now test.weather_lab.not_null_stg_forecasts_city.7c2476eeb4)
+[0m23:24:27.330303 [debug] [Thread-2 (]: Began running node model.weather_lab.dim_city
+[0m23:24:27.330519 [debug] [Thread-4 (]: Began compiling node model.weather_lab.stg_cities
+[0m23:24:27.330767 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly model.weather_lab.stg_forecasts, now test.weather_lab.not_null_stg_forecasts_model_run.eea4bedb72)
+[0m23:24:27.331004 [debug] [Thread-3 (]: Began compiling node test.weather_lab.not_null_stg_forecasts_city.7c2476eeb4
+[0m23:24:27.331252 [debug] [Thread-2 (]: Re-using an available connection from the pool (formerly model.weather_lab.stg_observations, now model.weather_lab.dim_city)
+[0m23:24:27.333811 [debug] [Thread-4 (]: Writing injected SQL for node "model.weather_lab.stg_cities"
+[0m23:24:27.334074 [debug] [Thread-1 (]: Began compiling node test.weather_lab.not_null_stg_forecasts_model_run.eea4bedb72
+[0m23:24:27.340264 [debug] [Thread-3 (]: Writing injected SQL for node "test.weather_lab.not_null_stg_forecasts_city.7c2476eeb4"
+[0m23:24:27.340583 [debug] [Thread-2 (]: Began compiling node model.weather_lab.dim_city
+[0m23:24:27.342973 [debug] [Thread-1 (]: Writing injected SQL for node "test.weather_lab.not_null_stg_forecasts_model_run.eea4bedb72"
+[0m23:24:27.344649 [debug] [Thread-2 (]: Writing injected SQL for node "model.weather_lab.dim_city"
+[0m23:24:27.344902 [debug] [Thread-4 (]: Began executing node model.weather_lab.stg_cities
+[0m23:24:27.345183 [debug] [Thread-3 (]: Began executing node test.weather_lab.not_null_stg_forecasts_city.7c2476eeb4
+[0m23:24:27.345899 [debug] [Thread-4 (]: Finished running node model.weather_lab.stg_cities
+[0m23:24:27.346153 [debug] [Thread-2 (]: Began executing node model.weather_lab.dim_city
+[0m23:24:27.346382 [debug] [Thread-1 (]: Began executing node test.weather_lab.not_null_stg_forecasts_model_run.eea4bedb72
+[0m23:24:27.346728 [debug] [Thread-3 (]: Finished running node test.weather_lab.not_null_stg_forecasts_city.7c2476eeb4
+[0m23:24:27.346990 [debug] [Thread-4 (]: Began running node model.weather_lab.fct_hourly_errors
+[0m23:24:27.347430 [debug] [Thread-2 (]: Finished running node model.weather_lab.dim_city
+[0m23:24:27.347858 [debug] [Thread-1 (]: Finished running node test.weather_lab.not_null_stg_forecasts_model_run.eea4bedb72
+[0m23:24:27.348100 [debug] [Thread-3 (]: Began running node test.weather_lab.dbt_utils_unique_combination_of_columns_stg_observations_city__valid_time.3812616f84
+[0m23:24:27.348378 [debug] [Thread-4 (]: Re-using an available connection from the pool (formerly model.weather_lab.stg_cities, now model.weather_lab.fct_hourly_errors)
+[0m23:24:27.348668 [debug] [Thread-2 (]: Began running node test.weather_lab.not_null_stg_observations_city.82496b7b7b
+[0m23:24:27.349001 [debug] [Thread-1 (]: Began running node test.weather_lab.not_null_stg_observations_valid_time.43830f9520
+[0m23:24:27.349325 [debug] [Thread-3 (]: Re-using an available connection from the pool (formerly test.weather_lab.not_null_stg_forecasts_city.7c2476eeb4, now test.weather_lab.dbt_utils_unique_combination_of_columns_stg_observations_city__valid_time.3812616f84)
+[0m23:24:27.349552 [debug] [Thread-4 (]: Began compiling node model.weather_lab.fct_hourly_errors
+[0m23:24:27.349784 [debug] [Thread-2 (]: Re-using an available connection from the pool (formerly model.weather_lab.dim_city, now test.weather_lab.not_null_stg_observations_city.82496b7b7b)
+[0m23:24:27.350021 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly test.weather_lab.not_null_stg_forecasts_model_run.eea4bedb72, now test.weather_lab.not_null_stg_observations_valid_time.43830f9520)
+[0m23:24:27.350249 [debug] [Thread-3 (]: Began compiling node test.weather_lab.dbt_utils_unique_combination_of_columns_stg_observations_city__valid_time.3812616f84
+[0m23:24:27.355276 [debug] [Thread-4 (]: Writing injected SQL for node "model.weather_lab.fct_hourly_errors"
+[0m23:24:27.355535 [debug] [Thread-2 (]: Began compiling node test.weather_lab.not_null_stg_observations_city.82496b7b7b
+[0m23:24:27.355768 [debug] [Thread-1 (]: Began compiling node test.weather_lab.not_null_stg_observations_valid_time.43830f9520
+[0m23:24:27.360876 [debug] [Thread-3 (]: Writing injected SQL for node "test.weather_lab.dbt_utils_unique_combination_of_columns_stg_observations_city__valid_time.3812616f84"
+[0m23:24:27.362988 [debug] [Thread-2 (]: Writing injected SQL for node "test.weather_lab.not_null_stg_observations_city.82496b7b7b"
+[0m23:24:27.364864 [debug] [Thread-1 (]: Writing injected SQL for node "test.weather_lab.not_null_stg_observations_valid_time.43830f9520"
+[0m23:24:27.365138 [debug] [Thread-4 (]: Began executing node model.weather_lab.fct_hourly_errors
+[0m23:24:27.365859 [debug] [Thread-3 (]: Began executing node test.weather_lab.dbt_utils_unique_combination_of_columns_stg_observations_city__valid_time.3812616f84
+[0m23:24:27.366062 [debug] [Thread-2 (]: Began executing node test.weather_lab.not_null_stg_observations_city.82496b7b7b
+[0m23:24:27.366442 [debug] [Thread-4 (]: Finished running node model.weather_lab.fct_hourly_errors
+[0m23:24:27.366626 [debug] [Thread-1 (]: Began executing node test.weather_lab.not_null_stg_observations_valid_time.43830f9520
+[0m23:24:27.367001 [debug] [Thread-3 (]: Finished running node test.weather_lab.dbt_utils_unique_combination_of_columns_stg_observations_city__valid_time.3812616f84
+[0m23:24:27.367365 [debug] [Thread-2 (]: Finished running node test.weather_lab.not_null_stg_observations_city.82496b7b7b
+[0m23:24:27.367600 [debug] [Thread-4 (]: Began running node test.weather_lab.not_null_stg_cities_city.b077ab056e
+[0m23:24:27.368040 [debug] [Thread-1 (]: Finished running node test.weather_lab.not_null_stg_observations_valid_time.43830f9520
+[0m23:24:27.368350 [debug] [Thread-3 (]: Began running node test.weather_lab.unique_stg_cities_city.ba1f10f703
+[0m23:24:27.368662 [debug] [Thread-2 (]: Began running node test.weather_lab.not_null_dim_city_city.add65bb427
+[0m23:24:27.368967 [debug] [Thread-4 (]: Re-using an available connection from the pool (formerly model.weather_lab.fct_hourly_errors, now test.weather_lab.not_null_stg_cities_city.b077ab056e)
+[0m23:24:27.369227 [debug] [Thread-1 (]: Began running node model.weather_lab.daily_kpis
+[0m23:24:27.369491 [debug] [Thread-3 (]: Re-using an available connection from the pool (formerly test.weather_lab.dbt_utils_unique_combination_of_columns_stg_observations_city__valid_time.3812616f84, now test.weather_lab.unique_stg_cities_city.ba1f10f703)
+[0m23:24:27.369733 [debug] [Thread-2 (]: Re-using an available connection from the pool (formerly test.weather_lab.not_null_stg_observations_city.82496b7b7b, now test.weather_lab.not_null_dim_city_city.add65bb427)
+[0m23:24:27.369970 [debug] [Thread-4 (]: Began compiling node test.weather_lab.not_null_stg_cities_city.b077ab056e
+[0m23:24:27.370214 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly test.weather_lab.not_null_stg_observations_valid_time.43830f9520, now model.weather_lab.daily_kpis)
+[0m23:24:27.370454 [debug] [Thread-3 (]: Began compiling node test.weather_lab.unique_stg_cities_city.ba1f10f703
+[0m23:24:27.370693 [debug] [Thread-2 (]: Began compiling node test.weather_lab.not_null_dim_city_city.add65bb427
+[0m23:24:27.372586 [debug] [Thread-4 (]: Writing injected SQL for node "test.weather_lab.not_null_stg_cities_city.b077ab056e"
+[0m23:24:27.372841 [debug] [Thread-1 (]: Began compiling node model.weather_lab.daily_kpis
+[0m23:24:27.376685 [debug] [Thread-3 (]: Writing injected SQL for node "test.weather_lab.unique_stg_cities_city.ba1f10f703"
+[0m23:24:27.378483 [debug] [Thread-2 (]: Writing injected SQL for node "test.weather_lab.not_null_dim_city_city.add65bb427"
+[0m23:24:27.379926 [debug] [Thread-1 (]: Writing injected SQL for node "model.weather_lab.daily_kpis"
+[0m23:24:27.380464 [debug] [Thread-4 (]: Began executing node test.weather_lab.not_null_stg_cities_city.b077ab056e
+[0m23:24:27.380971 [debug] [Thread-2 (]: Began executing node test.weather_lab.not_null_dim_city_city.add65bb427
+[0m23:24:27.381523 [debug] [Thread-4 (]: Finished running node test.weather_lab.not_null_stg_cities_city.b077ab056e
+[0m23:24:27.381741 [debug] [Thread-3 (]: Began executing node test.weather_lab.unique_stg_cities_city.ba1f10f703
+[0m23:24:27.381937 [debug] [Thread-1 (]: Began executing node model.weather_lab.daily_kpis
+[0m23:24:27.382318 [debug] [Thread-2 (]: Finished running node test.weather_lab.not_null_dim_city_city.add65bb427
+[0m23:24:27.382554 [debug] [Thread-4 (]: Began running node test.weather_lab.not_null_fct_hourly_errors_city.df47019802
+[0m23:24:27.382942 [debug] [Thread-3 (]: Finished running node test.weather_lab.unique_stg_cities_city.ba1f10f703
+[0m23:24:27.383294 [debug] [Thread-1 (]: Finished running node model.weather_lab.daily_kpis
+[0m23:24:27.383527 [debug] [Thread-2 (]: Began running node test.weather_lab.not_null_fct_hourly_errors_valid_time.ea63d64bce
+[0m23:24:27.383792 [debug] [Thread-4 (]: Re-using an available connection from the pool (formerly test.weather_lab.not_null_stg_cities_city.b077ab056e, now test.weather_lab.not_null_fct_hourly_errors_city.df47019802)
+[0m23:24:27.384278 [debug] [Thread-2 (]: Re-using an available connection from the pool (formerly test.weather_lab.not_null_dim_city_city.add65bb427, now test.weather_lab.not_null_fct_hourly_errors_valid_time.ea63d64bce)
+[0m23:24:27.384512 [debug] [Thread-3 (]: Began running node test.weather_lab.not_null_daily_kpis_day.f700bd56fd
+[0m23:24:27.384780 [debug] [Thread-4 (]: Began compiling node test.weather_lab.not_null_fct_hourly_errors_city.df47019802
+[0m23:24:27.385005 [debug] [Thread-2 (]: Began compiling node test.weather_lab.not_null_fct_hourly_errors_valid_time.ea63d64bce
+[0m23:24:27.385236 [debug] [Thread-3 (]: Re-using an available connection from the pool (formerly test.weather_lab.unique_stg_cities_city.ba1f10f703, now test.weather_lab.not_null_daily_kpis_day.f700bd56fd)
+[0m23:24:27.386980 [debug] [Thread-4 (]: Writing injected SQL for node "test.weather_lab.not_null_fct_hourly_errors_city.df47019802"
+[0m23:24:27.388877 [debug] [Thread-2 (]: Writing injected SQL for node "test.weather_lab.not_null_fct_hourly_errors_valid_time.ea63d64bce"
+[0m23:24:27.389128 [debug] [Thread-3 (]: Began compiling node test.weather_lab.not_null_daily_kpis_day.f700bd56fd
+[0m23:24:27.391177 [debug] [Thread-3 (]: Writing injected SQL for node "test.weather_lab.not_null_daily_kpis_day.f700bd56fd"
+[0m23:24:27.391587 [debug] [Thread-2 (]: Began executing node test.weather_lab.not_null_fct_hourly_errors_valid_time.ea63d64bce
+[0m23:24:27.391824 [debug] [Thread-4 (]: Began executing node test.weather_lab.not_null_fct_hourly_errors_city.df47019802
+[0m23:24:27.392190 [debug] [Thread-2 (]: Finished running node test.weather_lab.not_null_fct_hourly_errors_valid_time.ea63d64bce
+[0m23:24:27.392397 [debug] [Thread-3 (]: Began executing node test.weather_lab.not_null_daily_kpis_day.f700bd56fd
+[0m23:24:27.392807 [debug] [Thread-4 (]: Finished running node test.weather_lab.not_null_fct_hourly_errors_city.df47019802
+[0m23:24:27.393254 [debug] [Thread-3 (]: Finished running node test.weather_lab.not_null_daily_kpis_day.f700bd56fd
+[0m23:24:27.394365 [debug] [MainThread]: Connection 'master' was properly closed.
+[0m23:24:27.394606 [debug] [MainThread]: Connection 'test.weather_lab.not_null_daily_kpis_day.f700bd56fd' was properly closed.
+[0m23:24:27.394767 [debug] [MainThread]: Connection 'model.weather_lab.daily_kpis' was properly closed.
+[0m23:24:27.394914 [debug] [MainThread]: Connection 'test.weather_lab.not_null_fct_hourly_errors_valid_time.ea63d64bce' was properly closed.
+[0m23:24:27.395059 [debug] [MainThread]: Connection 'test.weather_lab.not_null_fct_hourly_errors_city.df47019802' was properly closed.
+[0m23:24:27.396461 [debug] [MainThread]: Command end result
+[0m23:24:27.457733 [debug] [MainThread]: Wrote artifact WritableManifest to ./target/manifest.json
+[0m23:24:27.459174 [debug] [MainThread]: Wrote artifact SemanticManifest to ./target/semantic_manifest.json
+[0m23:24:27.463629 [debug] [MainThread]: Wrote artifact RunExecutionResult to ./target/run_results.json
+[0m23:24:27.472167 [debug] [MainThread]: Acquiring new postgres connection 'generate_catalog'
+[0m23:24:27.472382 [info ] [MainThread]: Building catalog
+[0m23:24:27.477989 [debug] [ThreadPool]: Acquiring new postgres connection 'airflow.information_schema'
+[0m23:24:27.482020 [debug] [ThreadPool]: Using postgres connection "airflow.information_schema"
+[0m23:24:27.482230 [debug] [ThreadPool]: On airflow.information_schema: BEGIN
+[0m23:24:27.482395 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m23:24:27.486673 [debug] [ThreadPool]: SQL status: BEGIN in 0.004 seconds
+[0m23:24:27.486878 [debug] [ThreadPool]: Using postgres connection "airflow.information_schema"
+[0m23:24:27.487113 [debug] [ThreadPool]: On airflow.information_schema: /* {"app": "dbt", "dbt_version": "1.10.9", "profile_name": "weather_lab", "target_name": "dev", "connection_name": "airflow.information_schema"} */
+
+    
+    
+
+    select
+        'airflow' as table_database,
+        sch.nspname as table_schema,
+        tbl.relname as table_name,
+        case tbl.relkind
+            when 'v' then 'VIEW'
+            when 'm' then 'MATERIALIZED VIEW'
+            else 'BASE TABLE'
+        end as table_type,
+        tbl_desc.description as table_comment,
+        col.attname as column_name,
+        col.attnum as column_index,
+        pg_catalog.format_type(col.atttypid, col.atttypmod) as column_type,
+        col_desc.description as column_comment,
+        pg_get_userbyid(tbl.relowner) as table_owner
+
+    from pg_catalog.pg_namespace sch
+    join pg_catalog.pg_class tbl on tbl.relnamespace = sch.oid
+    join pg_catalog.pg_attribute col on col.attrelid = tbl.oid
+    left outer join pg_catalog.pg_description tbl_desc on (tbl_desc.objoid = tbl.oid and tbl_desc.objsubid = 0)
+    left outer join pg_catalog.pg_description col_desc on (col_desc.objoid = tbl.oid and col_desc.objsubid = col.attnum)
+    where ((upper(sch.nspname) = upper('analytics_mart') and
+           upper(tbl.relname) = upper('dim_city')) or (upper(sch.nspname) = upper('analytics') and
+           upper(tbl.relname) = upper('cities')) or (upper(sch.nspname) = upper('weather') and
+           upper(tbl.relname) = upper('metrics_daily')) or (upper(sch.nspname) = upper('analytics_staging') and
+           upper(tbl.relname) = upper('stg_observations')) or (upper(sch.nspname) = upper('analytics_mart') and
+           upper(tbl.relname) = upper('daily_kpis')) or (upper(sch.nspname) = upper('weather') and
+           upper(tbl.relname) = upper('forecast_hourly')) or (upper(sch.nspname) = upper('analytics_staging') and
+           upper(tbl.relname) = upper('stg_forecasts')) or (upper(sch.nspname) = upper('weather') and
+           upper(tbl.relname) = upper('observation_hourly')) or (upper(sch.nspname) = upper('analytics_staging') and
+           upper(tbl.relname) = upper('stg_cities')) or (upper(sch.nspname) = upper('analytics_mart') and
+           upper(tbl.relname) = upper('fct_hourly_errors')))
+      and not pg_is_other_temp_schema(sch.oid) -- not a temporary schema belonging to another session
+      and tbl.relpersistence in ('p', 'u') -- [p]ermanent table or [u]nlogged table. Exclude [t]emporary tables
+      and tbl.relkind in ('r', 'v', 'f', 'p', 'm') -- o[r]dinary table, [v]iew, [f]oreign table, [p]artitioned table, [m]aterialized view. Other values are [i]ndex, [S]equence, [c]omposite type, [t]OAST table
+      and col.attnum > 0 -- negative numbers are used for system columns such as oid
+      and not col.attisdropped -- column as not been dropped
+
+    order by
+        sch.nspname,
+        tbl.relname,
+        col.attnum
+[0m23:24:27.493661 [debug] [ThreadPool]: SQL status: SELECT 44 in 0.006 seconds
+[0m23:24:27.495390 [debug] [ThreadPool]: On airflow.information_schema: ROLLBACK
+[0m23:24:27.495676 [debug] [ThreadPool]: On airflow.information_schema: Close
+[0m23:24:27.503296 [debug] [MainThread]: Wrote artifact CatalogArtifact to ./target/catalog.json
+[0m23:24:27.519716 [debug] [MainThread]: Wrote artifact WritableManifest to ./target/manifest.json
+[0m23:24:27.520760 [debug] [MainThread]: Wrote artifact SemanticManifest to ./target/semantic_manifest.json
+[0m23:24:27.520959 [info ] [MainThread]: Catalog written to /opt/airflow/dbt/target/catalog.json
+[0m23:24:27.521624 [debug] [MainThread]: Resource report: {"command_name": "generate", "command_success": true, "command_wall_clock_time": 0.6853998, "process_in_blocks": "3400", "process_kernel_time": 0.311131, "process_mem_max_rss": "126008", "process_out_blocks": "6000", "process_user_time": 1.579899}
+[0m23:24:27.521969 [debug] [MainThread]: Command `dbt docs generate` succeeded at 23:24:27.521906 after 0.69 seconds
+[0m23:24:27.522168 [debug] [MainThread]: Connection 'generate_catalog' was properly closed.
+[0m23:24:27.522325 [debug] [MainThread]: Connection 'airflow.information_schema' was properly closed.
+[0m23:24:27.522513 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7467eb9f51f0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7467ef52eab0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7467eca0b8c0>]}
+[0m23:24:27.522721 [debug] [MainThread]: Flushing usage events
+[0m23:24:28.269037 [debug] [MainThread]: An error was encountered while trying to flush usage events
