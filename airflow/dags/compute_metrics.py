@@ -361,24 +361,24 @@ def export_daily_forecast_vs_obs():
                 "observed_value": float(r["o_temp_mean"]),
             }
         )
-    long_rows.append(
-        {
-            "day": day,
-            "city": city,
-            "var": "precipitation",
-            "forecast_value": float(r["f_prec_sum"]),
-            "observed_value": float(r["o_prec_sum"]),
-        }
-    )
-    long_rows.append(
-        {
-            "day": day,
-            "city": city,
-            "var": "wind_speed_10m",
-            "forecast_value": float(r["f_wind_mean"]),
-            "observed_value": float(r["o_wind_mean"]),
-        }
-    )
+        long_rows.append(
+            {
+                "day": day,
+                "city": city,
+                "var": "precipitation",
+                "forecast_value": float(r["f_prec_sum"]),
+                "observed_value": float(r["o_prec_sum"]),
+            }
+        )
+        long_rows.append(
+            {
+                "day": day,
+                "city": city,
+                "var": "wind_speed_10m",
+                "forecast_value": float(r["f_wind_mean"]),
+                "observed_value": float(r["o_wind_mean"]),
+            }
+        )
 
     out = pd.DataFrame(long_rows)
     gen = datetime.utcnow().isoformat(timespec="seconds") + "Z"
@@ -416,23 +416,6 @@ with DAG(
         env=DBT_ENV,
     )
 
-    # Pin dbt_utils to 1.2.0 (compatible with dbt-core 1.9.x) and install
-    dbt_pin_packages = BashOperator(
-        task_id="dbt_pin_packages",
-        bash_command=(
-            "set -e\n"
-            "cd /opt/airflow/dbt && \n"
-            "cat > packages.yml <<'YAML'\n"
-            "packages:\n"
-            "  - package: dbt-labs/dbt_utils\n"
-            '    version: "1.2.0"\n'
-            "YAML\n"
-            "rm -rf dbt_packages && \n"
-            "dbt deps --profiles-dir . --project-dir .\n"
-        ),
-        env=DBT_ENV,
-    )
-
     dbt_source_freshness = BashOperator(
         task_id="dbt_source_freshness",
         bash_command=(
@@ -445,7 +428,9 @@ with DAG(
     dbt_build = BashOperator(
         task_id="dbt_build",
         bash_command=(
-            "cd /opt/airflow/dbt && " "dbt build --profiles-dir . --project-dir ."
+            "cd /opt/airflow/dbt && "
+            "dbt deps --profiles-dir . --project-dir . && "
+            "dbt build --profiles-dir . --project-dir ."
         ),
         env=DBT_ENV,
     )
@@ -485,6 +470,6 @@ with DAG(
     )
 
     # ----- Wiring -----
-    ensure >> prep_dbt_dirs >> dbt_pin_packages >> dbt_source_freshness >> dbt_build
+    ensure >> prep_dbt_dirs >> dbt_source_freshness >> dbt_build
     dbt_build >> export_dbt_daily_kpis_csv >> dbt_docs_generate
     dbt_build >> compute >> export_metrics >> export_compare
