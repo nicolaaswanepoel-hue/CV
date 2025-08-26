@@ -6,7 +6,6 @@ models:
     # Model-level tests (attach to the model itself)
     tests:
       - dbt_utils.unique_combination_of_columns:
-          arguments:
             combination_of_columns: [city, valid_time]
     columns:
       - name: city
