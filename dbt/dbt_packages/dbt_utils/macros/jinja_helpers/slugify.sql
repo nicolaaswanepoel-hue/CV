@@ -1,9 +1,5 @@
 {% macro slugify(string) %}
 
-{% if not string %}
-{{ return('') }}
-{% endif %}
-
 {#- Lower case the string -#}
 {% set string = string | lower %}
 {#- Replace spaces and dashes with underscores -#}

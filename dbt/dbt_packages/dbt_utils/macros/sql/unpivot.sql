@@ -12,11 +12,11 @@ Arguments:
     value_name: Destination table column name for the pivoted values
 #}
 
-{% macro unpivot(relation=none, cast_to='varchar', exclude=none, remove=none, field_name='field_name', value_name='value', quote_identifiers=False) -%}
-    {{ return(adapter.dispatch('unpivot', 'dbt_utils')(relation, cast_to, exclude, remove, field_name, value_name, quote_identifiers)) }}
+{% macro unpivot(relation=none, cast_to='varchar', exclude=none, remove=none, field_name='field_name', value_name='value') -%}
+    {{ return(adapter.dispatch('unpivot', 'dbt_utils')(relation, cast_to, exclude, remove, field_name, value_name)) }}
 {% endmacro %}
 
-{% macro default__unpivot(relation=none, cast_to='varchar', exclude=none, remove=none, field_name='field_name', value_name='value', quote_identifiers=False) -%}
+{% macro default__unpivot(relation=none, cast_to='varchar', exclude=none, remove=none, field_name='field_name', value_name='value') -%}
 
     {% if not relation %}
         {{ exceptions.raise_compiler_error("Error: argument `relation` is required for `unpivot` macro.") }}
@@ -43,19 +43,18 @@ Arguments:
 
 
   {%- for col in include_cols -%}
-    {%- set current_col_name = adapter.quote(col.column) if quote_identifiers else col.column -%}
     select
       {%- for exclude_col in exclude %}
-        {{ adapter.quote(exclude_col) if quote_identifiers else exclude_col }},
+        {{ exclude_col }},
       {%- endfor %}
 
-      cast('{{ col.column }}' as {{ dbt.type_string() }}) as {{ adapter.quote(field_name) if quote_identifiers else field_name  }},
+      cast('{{ col.column }}' as {{ dbt.type_string() }}) as {{ field_name }},
       cast(  {% if col.data_type == 'boolean' %}
-           {{ dbt.cast_bool_to_text(current_col_name) }}
+           {{ dbt.cast_bool_to_text(col.column) }}
              {% else %}
-           {{ current_col_name }}
+           {{ col.column }}
              {% endif %}
-           as {{ cast_to }}) as {{ adapter.quote(value_name) if quote_identifiers else value_name }}
+           as {{ cast_to }}) as {{ value_name }}
 
     from {{ relation }}
 
