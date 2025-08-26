@@ -23,3 +23,11 @@ Thumbs.db
 
 # Docker volumes (if bind-mounted)
 pgdata/
+
+# dbt artefacts
+dbt/target/
+dbt/logs/
+dbt/dbt_packages/
+
+# airflow artefacts
+airflow/dags/__pycache__/
