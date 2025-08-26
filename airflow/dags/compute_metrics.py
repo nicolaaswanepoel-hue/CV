@@ -27,6 +27,10 @@ CITY = os.environ.get("CITY")  # optional city filter for both exports
 OUTPUT_DIR = Path(os.environ.get("OUTPUT_DIR", "/opt/airflow/docs/data"))
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
+# Keep dbt artefacts OFF the git bind mount
+DBT_LOG_PATH = os.environ.get("DBT_LOG_PATH", "/tmp/dbt/logs")
+DBT_TARGET_PATH = os.environ.get("DBT_TARGET_PATH", "/tmp/dbt/target")
+
 DBT_ENV = {
     "DBT_PROFILES_DIR": "/opt/airflow/dbt",
     "DBT_HOST": PG["host"],
@@ -36,8 +40,12 @@ DBT_ENV = {
     "DBT_USER": PG["user"],
     "DBT_PASSWORD": PG["password"],
     "DBT_THREADS": "4",
+    # keep dbt logs/targets in /tmp
+    "DBT_LOG_PATH": DBT_LOG_PATH,
+    "DBT_TARGET_PATH": DBT_TARGET_PATH,
     # for psql \copy
     "PGPASSWORD": PG["password"],
+    # ensure dbt/psql in PATH
     "PATH": "/home/airflow/.local/bin:/usr/local/bin:/usr/bin:/bin",
 }
 
@@ -353,24 +361,24 @@ def export_daily_forecast_vs_obs():
                 "observed_value": float(r["o_temp_mean"]),
             }
         )
-        long_rows.append(
-            {
-                "day": day,
-                "city": city,
-                "var": "precipitation",
-                "forecast_value": float(r["f_prec_sum"]),
-                "observed_value": float(r["o_prec_sum"]),
-            }
-        )
-        long_rows.append(
-            {
-                "day": day,
-                "city": city,
-                "var": "wind_speed_10m",
-                "forecast_value": float(r["f_wind_mean"]),
-                "observed_value": float(r["o_wind_mean"]),
-            }
-        )
+    long_rows.append(
+        {
+            "day": day,
+            "city": city,
+            "var": "precipitation",
+            "forecast_value": float(r["f_prec_sum"]),
+            "observed_value": float(r["o_prec_sum"]),
+        }
+    )
+    long_rows.append(
+        {
+            "day": day,
+            "city": city,
+            "var": "wind_speed_10m",
+            "forecast_value": float(r["f_wind_mean"]),
+            "observed_value": float(r["o_wind_mean"]),
+        }
+    )
 
     out = pd.DataFrame(long_rows)
     gen = datetime.utcnow().isoformat(timespec="seconds") + "Z"
@@ -397,6 +405,34 @@ with DAG(
     ensure = PythonOperator(task_id="ensure_table", python_callable=ensure_table)
 
     # --- dbt orchestration ---
+
+    # Keep /tmp dirs ready for dbt logs/targets
+    prep_dbt_dirs = BashOperator(
+        task_id="prep_dbt_dirs",
+        bash_command="""
+          set -e
+          install -d -m 775 "${DBT_LOG_PATH}" "${DBT_TARGET_PATH}"
+        """,
+        env=DBT_ENV,
+    )
+
+    # Pin dbt_utils to 1.2.0 (compatible with dbt-core 1.9.x) and install
+    dbt_pin_packages = BashOperator(
+        task_id="dbt_pin_packages",
+        bash_command=(
+            "set -e\n"
+            "cd /opt/airflow/dbt && \n"
+            "cat > packages.yml <<'YAML'\n"
+            "packages:\n"
+            "  - package: dbt-labs/dbt_utils\n"
+            '    version: "1.2.0"\n'
+            "YAML\n"
+            "rm -rf dbt_packages && \n"
+            "dbt deps --profiles-dir . --project-dir .\n"
+        ),
+        env=DBT_ENV,
+    )
+
     dbt_source_freshness = BashOperator(
         task_id="dbt_source_freshness",
         bash_command=(
@@ -409,9 +445,7 @@ with DAG(
     dbt_build = BashOperator(
         task_id="dbt_build",
         bash_command=(
-            "cd /opt/airflow/dbt && "
-            "dbt deps && "
-            "dbt build --profiles-dir . --project-dir ."
+            "cd /opt/airflow/dbt && " "dbt build --profiles-dir . --project-dir ."
         ),
         env=DBT_ENV,
     )
@@ -434,20 +468,10 @@ with DAG(
             "cd /opt/airflow/dbt && "
             "dbt docs generate --profiles-dir . --project-dir . && "
             "mkdir -p /opt/airflow/docs/dbt && "
-            "cp -r target/* /opt/airflow/docs/dbt/"
+            "cp -r ${DBT_TARGET_PATH}/* /opt/airflow/docs/dbt/"
         ),
         env=DBT_ENV,
         trigger_rule=TriggerRule.ALL_DONE,
-    )
-
-    prep_dbt_dirs = BashOperator(
-        task_id="prep_dbt_dirs",
-        bash_command=(
-            "cd /opt/airflow/dbt && "
-            "mkdir -p logs target && "
-            "chmod -R ug+rwX logs target"
-        ),
-        env=DBT_ENV,
     )
 
     # Python metrics pipeline
@@ -461,6 +485,6 @@ with DAG(
     )
 
     # ----- Wiring -----
-    ensure >> prep_dbt_dirs >> dbt_source_freshness >> dbt_build
+    ensure >> prep_dbt_dirs >> dbt_pin_packages >> dbt_source_freshness >> dbt_build
     dbt_build >> export_dbt_daily_kpis_csv >> dbt_docs_generate
     dbt_build >> compute >> export_metrics >> export_compare
