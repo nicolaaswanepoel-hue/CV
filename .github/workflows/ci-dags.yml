@@ -15,7 +15,7 @@ jobs:
     steps:
       - run: echo "CI - Airflow DAGs starting on ${{ github.ref }} (event=${{ github.event_name }})"
 
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       # If you don't have this local action, replace with actions/setup-python + pip install.
       - uses: ./.github/actions/setup-python-tooling
